@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="tzj@100.93.153.79:13579 password" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="cad02_tzj@10.112.67.227:17877">
         <serverdata>
@@ -72,6 +72,14 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="tzj@100.93.153.79:13579 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/tzj/codes/my_retrieval_model" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>
