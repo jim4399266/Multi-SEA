@@ -28,7 +28,7 @@ check_val_every_n_epoch: 1 # 每几个epoch验证一次
 accelerator: 'gpu'
 devices: [3,4]
 batch_size: 200  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 50  # you should define this manually with per_gpu_batch_size=#
+per_gpu_batch_size: 25  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8
@@ -40,13 +40,12 @@ warmup_steps: 0.15
 
 # ----------------------  Image Setting  ----------------------
 image_encoder_config:
-  vit_name: 'ViT-B-32'
-#  vit: 'base'
-  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
-  #vit_name: 'ViT-B-16'
-  #vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+#  vit_name: 'ViT-B-32'
+#  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+  vit_name: 'ViT-L-14'
+  vit: '/home/tzj/pretrained_models/ViT/ViT-L-14.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
-  patch_size: 32 # 送入vit的图片块的像素
+  patch_size: 14 # 送入vit的图片块的像素
   train_transform_keys: ["clip"] # 预处理图片的模型（将图片处理为image_size * image_size）
   val_transform_keys: ["clip"]
 #  image_embed_size: 512
@@ -55,8 +54,10 @@ image_encoder_config:
 
 # ----------------------  Text Setting  ----------------------
 text_encoder_config:
-  tokenizer_name: 'roberta-base'
-  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+#  tokenizer_name: 'roberta-base'
+#  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+  tokenizer_name: 'roberta-large'
+  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
   vocab_size: 50265
 #  text_embed_size: 768
   max_text_len: 40

@@ -41,7 +41,7 @@ class RetrievalModule(BaseModule):
         aformer_config.num_hidden_layers = config['num_top_layer']
         self.aformer = AFormer(aformer_config)
 
-        self.itm_head = nn.Linear(text_width, 2)
+        self.itm_head = nn.Linear(hidden_size, 2)
 
         self.set_metrics()
 
