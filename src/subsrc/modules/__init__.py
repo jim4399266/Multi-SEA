@@ -1,11 +1,12 @@
 from typing import List, Union
 
-from .model_retrieval import RetrievalModule
+from .model_retrieval import RetrievalModule, RetrievalModuleWithQueue
 
 _models = {
     # "f30k": F30KCaptionKarpathyDataModule,
     "baseline": RetrievalModule,
     "aformer":RetrievalModule,
+    "aformer_queue":RetrievalModuleWithQueue,
     # "aformer": RetrievalMomentumModule
 }
 

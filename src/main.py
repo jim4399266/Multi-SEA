@@ -34,6 +34,7 @@ def main(args, config):
         'arch': config['arch'],
         'bs': config["batch_size"],
         'pbs': config["per_gpu_batch_size"],
+        'queue_size': config['queue_size'],
         'epoch': config["max_epoch"],
         'lr': config["optimizer"]["init_lr"],
         'layer': config['num_top_layer'],
@@ -136,7 +137,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco_baseline.yaml')
     parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
-    parser.add_argument('--devices', default='[0]')
+    parser.add_argument('--devices', default='[3]')
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--test_only', action='store_true')
     parser.add_argument('--debug', action='store_true')

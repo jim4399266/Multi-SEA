@@ -6,7 +6,7 @@ log_dir: "../logs"
 # set pretrained as a file path or an url
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
 pretrained: ''
-arch: 'Aformer'
+arch: 'Aformer_queue'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -15,7 +15,8 @@ shuffle: True # 训练集是否打乱
 task_name: {'irtr': 1}
 get_recall_metric: True
 top_k: 64
-queue_size: 57600
+queue_size: 500
+distill: False
 momentum: 0.995
 alpha: 0.4
 negative_all_rank: True
@@ -28,22 +29,22 @@ check_val_every_n_epoch: 1 # 每几个epoch验证一次
 accelerator: 'gpu'
 devices: [3,4]
 batch_size: 200  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 25  # you should define this manually with per_gpu_batch_size=#
+per_gpu_batch_size: 50  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8
 precision: 32
 max_grad_norm: 1.
-max_epoch: 6
+max_epoch: 60
 max_steps: -1
 warmup_steps: 0.15
 
 # ----------------------  Image Setting  ----------------------
 image_encoder_config:
-#  vit_name: 'ViT-B-32'
-#  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
-  vit_name: 'ViT-L-14'
-  vit: '/home/tzj/pretrained_models/ViT/ViT-L-14.pt'  # vit模型权重
+  vit_name: 'ViT-B-32'
+  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+#  vit_name: 'ViT-L-14'
+#  vit: '/home/tzj/pretrained_models/ViT/ViT-L-14.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
   patch_size: 14 # 送入vit的图片块的像素
   train_transform_keys: ["clip"] # 预处理图片的模型（将图片处理为image_size * image_size）
@@ -54,10 +55,10 @@ image_encoder_config:
 
 # ----------------------  Text Setting  ----------------------
 text_encoder_config:
-#  tokenizer_name: 'roberta-base'
-#  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
-  tokenizer_name: 'roberta-large'
-  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
+  tokenizer_name: 'roberta-base'
+  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+#  tokenizer_name: 'roberta-large'
+#  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
   vocab_size: 50265
 #  text_embed_size: 768
   max_text_len: 40
