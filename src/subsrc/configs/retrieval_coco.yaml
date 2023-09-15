@@ -7,6 +7,7 @@ log_dir: "../logs"
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
 pretrained: ''
 arch: 'Aformer_queue'
+desc: '向量点乘不添加temp缩放'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -35,7 +36,7 @@ pin_memory: True
 num_workers: 8
 precision: 32
 max_grad_norm: 1.
-max_epoch: 60
+max_epoch: 10
 max_steps: -1
 warmup_steps: 0.15
 
