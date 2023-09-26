@@ -10,11 +10,10 @@ from collections import defaultdict
 import torch.distributed as dist
 from .dist_utils import all_gather_with_grad, concat_all_gather
 
-@torch.no_grad()
-def val_irtr(pl_module, data_loader):
-    device = pl_module.device
-    config = pl_module.hparams.config
 
+
+@torch.no_grad()
+def val_irtr_encoding(pl_module, data_loader):
     text_embeds_all = []
     text_feats_all = []
     text_atts_all = []
@@ -40,7 +39,15 @@ def val_irtr(pl_module, data_loader):
     image_embeds_all = torch.cat(image_embeds_all, dim=0)
     image_feats_all = torch.cat(image_feats_all, dim=0)
     image_atts_all = torch.cat(image_atts_all, dim=0)
+    return [text_embeds_all, text_feats_all, text_atts_all,
+            image_embeds_all, image_feats_all, image_atts_all]
 
+@torch.no_grad()
+def val_irtr_recall_sort(pl_module, vectors):
+    text_embeds_all, text_feats_all, text_atts_all,\
+        image_embeds_all, image_feats_all, image_atts_all = vectors
+    config = pl_module.hparams.config
+    device = config['device']
     # 粗排，筛选 top_k 个候选集
     sims_matrix = image_feats_all @ text_feats_all.t()
     score_matrix_i2t = torch.full((len(image_feats_all), len(text_feats_all)), -100.).to(device)
@@ -67,7 +74,6 @@ def val_irtr(pl_module, data_loader):
         score_i2t = score_i2t[:, 1]
         # score_i2t = pl_module.itm_head(image2text_output.last_hidden_state[:, 0])[:, 1]
         score_matrix_i2t[start + i, topk_idx] = score_i2t + topk_sim
-
 
     # 精排，文本检索图片
     sims_matrix = sims_matrix.t()
@@ -102,8 +108,25 @@ def val_irtr(pl_module, data_loader):
 
     return score_matrix_i2t.cpu().numpy(), score_matrix_t2i.cpu().numpy()
 
+#TODO
 @torch.no_grad()
-def recall_eval(scores_i2t, scores_t2i, index_mapper):
+def val_irtr(pl_module, data_loader):
+    vectors = val_irtr_encoding(pl_module, data_loader)
+
+    if '1k' in pl_module.hparams.config['coco_scale']:
+        # 使用mscoco的1k测试集
+
+    if '5k' in pl_module.hparams.config['coco_scale']:
+        # 使用mscoco的5k测试集
+        score_val_i2t, score_val_t2i = val_irtr_recall_sort(pl_module, vectors)
+        val_result = calculate_score(score_val_i2t, score_val_t2i, data_loader.dataset.index_mapper)
+
+    if pl_module.hparams.config['coco_scale'] == '':
+        # 使用默认数据集（mscoco5k）
+
+
+@torch.no_grad()
+def calculate_score(scores_i2t, scores_t2i, index_mapper):
     img2txt, txt2img = {}, {}
     for k, v in index_mapper.items():
         # t_idx = k         i_idx = v[0]

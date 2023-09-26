@@ -333,16 +333,12 @@ class RetrievalModuleWithQueue(BaseModule):
                 data_loader = self.trainer.datamodule.test_dataloader()
                 patt = re.compile("step(\d*)")
                 cur_step = re.search(patt, Path(self.trainer.ckpt_path).stem).group(1)
-            score_val_i2t, score_val_t2i = evaluate.val_irtr(self, data_loader)
-            val_result = evaluate.recall_eval(score_val_i2t, score_val_t2i, data_loader.dataset.index_mapper)
+            val_result = evaluate.val_irtr(self, data_loader)
             print(f'global_step: {cur_step}')
             print(val_result)
-            for item in ['txt_r1', 'txt_r5', 'txt_r10', 'txt_r_mean', 'img_r1', 'img_r5', 'img_r10', 'img_r_mean', 'r_mean']:
-                self.logger.experiment.add_scalar(f"{phase}/{item}", val_result[item], cur_step)
 
-            # the_metric += (val_result['txt_r1'] + val_result['img_r1']) * 10 \
-            #               + (val_result['txt_r5'] + val_result['img_r5']) * 5 \
-            #               + val_result['txt_r10'] + val_result['img_r10']
+            for item in ['txt_r1', 'txt_r5', 'txt_r10', 'txt_r_mean', 'img_r1', 'img_r5', 'img_r10', 'img_r_mean', 'r_mean']:
+                self.logger.experiment.add_scalar(f"{phase}_{dataset}{sacle}/{item}", val_result[item], cur_step)
 
             the_metric += (val_result['r_sum'])
 
