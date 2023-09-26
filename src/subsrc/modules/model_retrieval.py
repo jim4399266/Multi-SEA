@@ -216,7 +216,9 @@ class RetrievalModuleWithQueue(BaseModule):
         hidden_size = config['hidden_size']
 
         self.distill = config['distill']
-        self.temp = nn.Parameter(0.07 * torch.ones([]))
+        self.temp = nn.Parameter(config['temp'] * torch.ones([]))
+        self.itc_coefficient = nn.Parameter(config['itc_coefficient'] * torch.ones([]))
+        self.itm_coefficient = nn.Parameter(config['itm_coefficient'] * torch.ones([]))
         self.queue_size = config['queue_size']
         self.negative_all_rank = config['negative_all_rank']
 
@@ -281,7 +283,8 @@ class RetrievalModuleWithQueue(BaseModule):
         return [image_feats, image_embeds, image_atts]
 
     def forward(self, batch, phase):
-        return train.train_irtr_with_queue(self, batch)
+        # return train.train_irtr_with_queue(self, batch)
+        return train.train_irtr_with_queue_balance(self, batch)
 
     def training_step(self, batch, batch_idx):
         if self.trainer.current_epoch > 0:
@@ -372,7 +375,8 @@ class RetrievalModuleWithQueue(BaseModule):
     def configure_optimizers(self):
         opt_config = self.hparams.config['optimizer']
         max_steps, warmup_steps = self.cal_steps()
-        optimizer = torch.optim.AdamW(params=self.parameters(),
+
+        optimizer = torch.optim.AdamW(params=self.get_optimizer_parameters(opt_config),
                                       lr=opt_config['init_lr'],
                                       weight_decay=opt_config['weight_decay'],
                                       eps=opt_config['eps'],
@@ -382,6 +386,28 @@ class RetrievalModuleWithQueue(BaseModule):
             'optimizer': optimizer,
             'lr_scheduler': sched,
         }
+
+    def get_optimizer_parameters(self, opt_config):
+        coefficients = ['coefficients, temp']
+        optimizer_grouped_parameters = [
+            {   # 是系数的学习率为1e-3
+                "params": [
+                    p
+                    for n, p in self.named_parameters()
+                    if any(bb in n for bb in coefficients)
+                ],
+                "lr": 1e-3,
+            },
+            {   # 其余参数学习率默认
+                "params": [
+                    p
+                    for n, p in self.named_parameters()
+                    if not any(bb in n for bb in coefficients)
+                ],
+            }
+        ]
+        return optimizer_grouped_parameters
+
 
     @classmethod
     def from_pretrained(cls, config):

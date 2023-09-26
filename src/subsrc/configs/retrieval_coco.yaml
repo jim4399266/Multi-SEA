@@ -7,7 +7,7 @@ log_dir: "../logs"
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
 pretrained: ''
 arch: 'Aformer_queue'
-desc: '向量点乘不添加temp缩放'
+desc: '向量点乘不添加temp缩放；添加两个任务的平衡系数'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -20,7 +20,11 @@ queue_size: 500
 distill: False
 momentum: 0.995
 alpha: 0.4
+temp: 0.07
+itc_coefficient: 0.5
+itm_coefficient: 5
 negative_all_rank: True
+coco_scale: ['1k', '5k']  # 测试集数据量是1k还是5k还是都测
 
 # ----------------------  Lightning Trainer Setting  ------------------------------
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
