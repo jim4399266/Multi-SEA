@@ -137,7 +137,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco_baseline.yaml')
     parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
-    parser.add_argument('--devices', default='[3]')
+    parser.add_argument('--devices', default='[6]')
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--test_only', action='store_true')
     parser.add_argument('--debug', action='store_true')

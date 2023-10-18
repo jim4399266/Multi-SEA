@@ -9,6 +9,7 @@ import gc
 import numpy as np
 from transformers import AutoTokenizer, AutoModel, AutoConfig, BertConfig
 from pathlib import Path
+from collections import defaultdict
 
 # from .bert_model import BertCrossLayer, BertAttention
 from .clip_model import build_model, adapt_position_encoding
@@ -325,6 +326,7 @@ class RetrievalModuleWithQueue(BaseModule):
     def epoch_wrapup(self, phase):
         the_metric = 0
         total_loss = 0
+        dataset = self.hparams.config['coco_scale'][0]
         if not self.training:
             if phase == 'val':
                 data_loader = self.trainer.datamodule.val_dataloader()
@@ -333,15 +335,57 @@ class RetrievalModuleWithQueue(BaseModule):
                 data_loader = self.trainer.datamodule.test_dataloader()
                 patt = re.compile("step(\d*)")
                 cur_step = re.search(patt, Path(self.trainer.ckpt_path).stem).group(1)
-            val_result = evaluate.val_irtr(self, data_loader)
+
+            # 对测试集进行编码
+            # text_embeds_all, text_feats_all, text_atts_all, image_embeds_all, image_feats_all, image_atts_all
+            vectors = evaluate.val_irtr_encoding(self, data_loader)
+            # 进行相似度得分的计算
+            if '1k' in self.hparams.config['coco_scale']:
+                # 使用mscoco的1k测试集
+                results = defaultdict(list)
+                for i in range(5):
+                    text_step, image_step = int(len(vectors[0]) / 5), int(len(vectors[-1]) / 5)
+                    sub_text_vectors = [embeds[i * text_step:(i + 1) * text_step] for embeds in vectors[:3]]
+                    sub_image_vectors = [embeds[i * image_step:(i + 1) * image_step] for embeds in vectors[3:]]
+                    sub_vectors = sub_text_vectors + sub_image_vectors
+                    score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, sub_vectors)
+                    # 创建映射
+                    sub_index_mapper = dict()
+                    j = 0
+                    for i in range(image_step):
+                        for _j in range(5):
+                            # 构建文本和图片的映射关系：第j段文本是第i张图片中的第_j个文本（_j： 0~4）
+                            sub_index_mapper[j] = (i, _j)
+                            j += 1
+                    val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i,
+                                                          sub_index_mapper)
+                    for k, v in val_result.items():
+                        results[k].append(v)
+                for k, v in results.items():
+                    results[k] = np.mean(v)
+                    self.logger.experiment.add_scalar(f"{phase}_{dataset}1k/{k}", np.mean(v), cur_step)
+                print(results)
+
+
+
+            if '5k' in self.hparams.config['coco_scale']:
+                # 使用mscoco的5k测试集
+                score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, vectors)
+                val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i, data_loader.dataset.index_mapper)
+                for k, v in val_result.items():
+                    self.logger.experiment.add_scalar(f"{phase}_{dataset}5k/{k}", np.mean(v), cur_step)
+                print(val_result)
+            # if self.hparams.config['coco_scale'] == '':
+            #     # 使用flick30k
+            #     score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, vectors)
+            #     val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i, data_loader.dataset.index_mapper)
+            #     for item in ['txt_r1', 'txt_r5', 'txt_r10', 'txt_r_mean', 'img_r1', 'img_r5', 'img_r10', 'img_r_mean',
+            #                  'r_mean']:
+            #         self.logger.experiment.add_scalar(f"{phase}_{dataset}/{item}", val_result[item], cur_step)
+            # 计算最终检索得分
+
             print(f'global_step: {cur_step}')
-            print(val_result)
-
-            for item in ['txt_r1', 'txt_r5', 'txt_r10', 'txt_r_mean', 'img_r1', 'img_r5', 'img_r10', 'img_r_mean', 'r_mean']:
-                self.logger.experiment.add_scalar(f"{phase}_{dataset}{sacle}/{item}", val_result[item], cur_step)
-
             the_metric += (val_result['r_sum'])
-
             self.logger.experiment.add_scalar(
                 f'{phase}/the_metric', the_metric, cur_step
             )

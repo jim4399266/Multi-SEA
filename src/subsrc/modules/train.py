@@ -278,16 +278,16 @@ def train_irtr_with_queue(pl_module, batch):
             weights_t2i = F.softmax(sim_t2i, dim=1)
             weights_t2i.masked_fill_(mask, 0)
 
-        # image_embeds_world = all_gather_with_grad(image_embeds, pl_module.trainer.world_size)
-        # text_embeds_world = all_gather_with_grad(text_embeds, pl_module.trainer.world_size)
-        # text_attns_world = all_gather_with_grad(text_atts, pl_module.trainer.world_size)
+        image_embeds_world = all_gather_with_grad(image_embeds, pl_module.trainer.world_size)
+        text_embeds_world = all_gather_with_grad(text_embeds, pl_module.trainer.world_size)
+        text_attns_world = all_gather_with_grad(text_atts, pl_module.trainer.world_size)
 
         # select a negative image (from all ranks) for each text
         image_embeds_neg = []
         image_feats_neg = []  # for triplet loss
         for b in range(bs):
             neg_idx = torch.multinomial(weights_t2i[b], 1).item()
-            # image_embeds_neg.append(image_embeds_world[neg_idx])
+            image_embeds_neg.append(image_embeds_world[neg_idx])
             image_feats_neg.append(image_feats_world[neg_idx])
 
         # select a negative text (from all ranks) for each image
@@ -296,8 +296,8 @@ def train_irtr_with_queue(pl_module, batch):
         text_feats_neg = []  # for triplet loss
         for b in range(bs):
             neg_idx = torch.multinomial(weights_i2t[b], 1).item()
-            # text_embeds_neg.append(text_embeds_world[neg_idx])
-            # text_attns_neg.append(text_attns_world[neg_idx])
+            text_embeds_neg.append(text_embeds_world[neg_idx])
+            text_attns_neg.append(text_attns_world[neg_idx])
             text_feats_neg.append(text_feats_world[neg_idx])
     else:  # 仅从当前卡上的批次中抽取负样本
         with torch.no_grad():
