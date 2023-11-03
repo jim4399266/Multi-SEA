@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="2e0d1a97-c522-475b-8fb5-bced0d2d79d9" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/src/subsrc/configs/retrieval_coco.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/src/subsrc/configs/retrieval_coco.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/subsrc/modules/model_retrieval.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/subsrc/modules/model_retrieval.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/subsrc/modules/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/subsrc/modules/train.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2UHWjgWd3u1HfThg1WJ3aA2AdYR" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/OneDrive/codes/my_retrieval_model/src/subsrc/modules&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\OneDrive\codes\my_retrieval_model\src\subsrc\modules" />
+      <recent name="D:\OneDrive\codes\my_retrieval_model\src\subsrc" />
+      <recent name="D:\OneDrive\codes\my_retrieval_model\src\subsrc\datasets" />
+      <recent name="D:\OneDrive\codes\my_retrieval_model\src\subsrc\configs" />
+      <recent name="D:\OneDrive\codes\my_retrieval_model\src\subsrc\datamodules" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="main " type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="my_retrieval_model" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/main.py" />
+      <option name="PARAMETERS" value="--debug" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main " />
+        <item itemvalue="Python.main " />
+        <item itemvalue="Python.main " />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2e0d1a97-c522-475b-8fb5-bced0d2d79d9" name="Changes" comment="" />
+      <created>1692597123447</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1692597123447</updated>
+      <workItem from="1692597125782" duration="753000" />
+      <workItem from="1692597985498" duration="4090000" />
+      <workItem from="1692692503164" duration="737000" />
+      <workItem from="1692716363399" duration="507000" />
+      <workItem from="1693053758933" duration="3050000" />
+      <workItem from="1693371204067" duration="486000" />
+      <workItem from="1693486668865" duration="11766000" />
+      <workItem from="1693556098544" duration="7328000" />
+      <workItem from="1693744366626" duration="2478000" />
+      <workItem from="1694498524850" duration="760000" />
+      <workItem from="1694499304778" duration="9981000" />
+      <workItem from="1694532363526" duration="355000" />
+      <workItem from="1694616893457" duration="1238000" />
+      <workItem from="1694680906576" duration="1414000" />
+      <workItem from="1694744877069" duration="3026000" />
+    </task>
+    <task id="LOCAL-00001" summary="1">
+      <created>1692692548701</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1692692548701</updated>
+    </task>
+    <task id="LOCAL-00002" summary="跑通">
+      <created>1693744383229</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1693744383229</updated>
+    </task>
+    <task id="LOCAL-00003" summary="跑通">
+      <created>1694499402432</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1694499402432</updated>
+    </task>
+    <task id="LOCAL-00004" summary="添加负样本队列，从500开始测试（对比学习有是否缩放两种）">
+      <created>1694681323353</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1694681323353</updated>
+    </task>
+    <task id="LOCAL-00005" summary="添加负样本队列，从500开始测试（对比学习有是否缩放两种）">
+      <created>1694746107631</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1694746107631</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="1" />
+    <MESSAGE value="跑通" />
+    <MESSAGE value="添加负样本队列，从500开始测试（对比学习有是否缩放两种）" />
+    <option name="LAST_COMMIT_MESSAGE" value="添加负样本队列，从500开始测试（对比学习有是否缩放两种）" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/subsrc/datamodules/datamodule_base.py</url>
+          <line>15</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/subsrc/modules/train.py</url>
+          <line>236</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/my_retrieval_model$main_.coverage" NAME="main  Coverage Results" MODIFIED="1694590614717" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/my_retrieval_model$main__1_.coverage" NAME="main  Coverage Results" MODIFIED="1693548470752" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+  </component>
+</project>
