@@ -117,7 +117,7 @@ def main(args, config):
     )
 
     if args.test_only:
-        trainer.test(model, datamoule=dm)
+        trainer.test(model, datamodule=dm)
     elif args.evaluate:
         trainer.validate(model, datamodule=dm)
     else:
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco_baseline.yaml')
     parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
-    parser.add_argument('--devices', default='[6]')
+    parser.add_argument('--devices', default='[0]')
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--test_only', action='store_true')
     parser.add_argument('--debug', action='store_true')
@@ -147,12 +147,14 @@ if __name__ == '__main__':
     if args.devices != '':
         config['devices'] = eval(args.devices)
     if args.debug:
-        config['train_dataset_len'] = int(50 * config['per_gpu_batch_size'])
-        config['val_dataset_len'] = int(5 * config['per_gpu_batch_size'])
+        config['train_dataset_len'] = int(5 * config['per_gpu_batch_size'])
+        config['val_dataset_len'] = int(-1)
+        # config['val_dataset_len'] = int(5 * config['per_gpu_batch_size'])
         config['test_dataset_len'] = int(5 * config['per_gpu_batch_size'])
-        config['fast_dev_run'] = 10
+        config['fast_dev_run'] = False
         config['shuffle'] = False
         config['num_workers'] = 0
         # config['max_epoch'] = 3
+        config['debug'] = True
     config['optimizer']['betas'] = eval(config['optimizer']['betas'])
     main(args, config)

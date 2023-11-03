@@ -1,4 +1,5 @@
 import torch.distributed as dist
+import copy
 from torch import nn
 import torch
 import torch.nn.functional as F
@@ -225,7 +226,7 @@ class RetrievalModuleWithQueue(BaseModule):
         self.text_encoder, text_width = self.create_text_encoder(text_encoder_config)
         self.vision_proj = nn.Linear(vision_width, hidden_size)
         self.text_proj = nn.Linear(text_width, hidden_size)
-
+        print(Path.cwd())
         aformer_config = BertConfig.from_json_file(config['aformer_config_path'])
         aformer_config.num_hidden_layers = config['num_top_layer']
         self.aformer = AFormer(aformer_config)
@@ -309,7 +310,12 @@ class RetrievalModuleWithQueue(BaseModule):
         self.training_step_outputs.clear()  # free memory
 
     def validation_step(self, batch, batch_idx):
-        pass
+        # pass
+        image_feats, image_embeds, image_atts = self.encoding_image(batch)
+        text_feats, text_embeds, text_atts = self.encoding_text(batch)
+
+        self.validation_step_outputs.append([text_embeds, text_feats, text_atts,
+                                             image_embeds, image_feats, image_atts])
 
     def on_validation_epoch_end(self) -> None:
         # 不传入out了，直接从self.validation_step_outputs获取每个val step的返回
@@ -318,45 +324,71 @@ class RetrievalModuleWithQueue(BaseModule):
         self.validation_step_outputs.clear()  # free memory
 
     def test_step(self, batch, batch_idx):
-        pass
+        # pass
+        image_feats, image_embeds, image_atts = self.encoding_image(batch)
+        text_feats, text_embeds, text_atts = self.encoding_text(batch)
+        self.test_step_outputs.append([text_embeds, text_feats, text_atts,
+                                             image_embeds, image_feats, image_atts])
 
     def on_test_epoch_end(self) -> None:
         self.epoch_wrapup(phase='test')
+        self.test_step_outputs.clear()  # free memory
 
     def epoch_wrapup(self, phase):
         the_metric = 0
         total_loss = 0
-        dataset = self.hparams.config['coco_scale'][0]
+        dataset = self.hparams.config['datasets'][0]
         if not self.training:
             if phase == 'val':
-                data_loader = self.trainer.datamodule.val_dataloader()
+                # data_loader = self.trainer.datamodule.val_dataloader()
                 cur_step = self.global_step
+                vectors = list(zip(*self.validation_step_outputs))
+                index_mapper = self.trainer.datamodule.val_dataloader().dataset.index_mapper
+                image_mapper = self.trainer.datamodule.val_dataloader().dataset.image_mapper
             else:
-                data_loader = self.trainer.datamodule.test_dataloader()
+                # data_loader = self.trainer.datamodule.test_dataloader()
                 patt = re.compile("step(\d*)")
-                cur_step = re.search(patt, Path(self.trainer.ckpt_path).stem).group(1)
+                cur_step = 0 if self.trainer.ckpt_path == None else \
+                    re.search(patt, Path(self.trainer.ckpt_path).stem).group(1)
+                vectors = list(zip(*self.test_step_outputs))
+                index_mapper = self.trainer.datamodule.test_dataloader().dataset.index_mapper
+                image_mapper = self.trainer.datamodule.test_dataloader().dataset.image_mapper
 
-            # 对测试集进行编码
+            # 将vectors的list转换为tensor
             # text_embeds_all, text_feats_all, text_atts_all, image_embeds_all, image_feats_all, image_atts_all
-            vectors = evaluate.val_irtr_encoding(self, data_loader)
+            vectors = [torch.cat(vec, dim=0) for vec in vectors]
+            # vectors = evaluate.val_irtr_encoding(self, data_loader)
+            # vectors = [torch.randn([25009, 40, 768], device='cuda:0'),
+            #            torch.randn([25009, 768], device='cuda:0'),
+            #            torch.randn([25009, 40], device='cuda:0'),
+            #            torch.randn([5000, 50, 768], device='cuda:0'),
+            #            torch.randn([5000, 768], device='cuda:0'),
+            #            torch.randn([5000, 40, 768], device='cuda:0'),]
             # 进行相似度得分的计算
             if '1k' in self.hparams.config['coco_scale']:
                 # 使用mscoco的1k测试集
                 results = defaultdict(list)
                 for i in range(5):
-                    text_step, image_step = int(len(vectors[0]) / 5), int(len(vectors[-1]) / 5)
-                    sub_text_vectors = [embeds[i * text_step:(i + 1) * text_step] for embeds in vectors[:3]]
+                    assert len(vectors[-1]) % 5 == 0, "图片无法均匀切分"
+                    # 创建映射，因为数据集实际情况不完全是1图片对应5文本
+                    # 有的对应6或4文本，因此需要借助image_mapper定位文本下表
+                    image_step = int(len(vectors[-1]) / 5)
+                    # 定位文本的开头结尾位置（text_e为文本结束位置的下一个标签）
+                    text_s, text_e = image_mapper[i * image_step][0], image_mapper[(i + 1) * image_step - 1][-1] + 1
+
+                    sub_index_mapper = dict()
+                    for j in range(text_s, text_e):
+                        # print(f"index_mapper[{j}]:{index_mapper[j]}")
+                        sub_index_mapper[j - text_s] = copy.deepcopy(index_mapper[j])
+                        sub_index_mapper[j - text_s][0] -= i * image_step
+
+                    sub_text_vectors = [embeds[text_s:text_e] for embeds in vectors[:3]]
                     sub_image_vectors = [embeds[i * image_step:(i + 1) * image_step] for embeds in vectors[3:]]
                     sub_vectors = sub_text_vectors + sub_image_vectors
+
                     score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, sub_vectors)
-                    # 创建映射
-                    sub_index_mapper = dict()
-                    j = 0
-                    for i in range(image_step):
-                        for _j in range(5):
-                            # 构建文本和图片的映射关系：第j段文本是第i张图片中的第_j个文本（_j： 0~4）
-                            sub_index_mapper[j] = (i, _j)
-                            j += 1
+                    # score_val_i2t, score_val_t2i = np.random.randn(len(sub_image_vectors[0]), len(sub_text_vectors[0])),\
+                    #     np.random.randn(len(sub_text_vectors[0]), len(sub_image_vectors[0]))
                     val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i,
                                                           sub_index_mapper)
                     for k, v in val_result.items():
@@ -371,7 +403,96 @@ class RetrievalModuleWithQueue(BaseModule):
             if '5k' in self.hparams.config['coco_scale']:
                 # 使用mscoco的5k测试集
                 score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, vectors)
-                val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i, data_loader.dataset.index_mapper)
+                val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i, index_mapper)
+                for k, v in val_result.items():
+                    self.logger.experiment.add_scalar(f"{phase}_{dataset}5k/{k}", np.mean(v), cur_step)
+                print(val_result)
+            # if self.hparams.config['coco_scale'] == '':
+            #     # 使用flick30k
+            #     score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, vectors)
+            #     val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i, data_loader.dataset.index_mapper)
+            #     for item in ['txt_r1', 'txt_r5', 'txt_r10', 'txt_r_mean', 'img_r1', 'img_r5', 'img_r10', 'img_r_mean',
+            #                  'r_mean']:
+            #         self.logger.experiment.add_scalar(f"{phase}_{dataset}/{item}", val_result[item], cur_step)
+            # 计算最终检索得分
+
+            print(f'global_step: {cur_step}')
+            the_metric += (val_result['r_sum'])
+            self.logger.experiment.add_scalar(
+                f'{phase}/the_metric', the_metric, cur_step
+            )
+            # self.log(f'{phase}/irtr/the_metric', the_metric)
+            # self.log(f'{phase}/r_mean', val_result['r_mean'])
+            self.log(f'{phase}/the_metric', the_metric)
+
+    def epoch_wrapup_debug(self, phase):
+        the_metric = 0
+        total_loss = 0
+        dataset = self.hparams.config['datasets'][0]
+        if not self.training:
+            if phase == 'val':
+                # data_loader = self.trainer.datamodule.val_dataloader()
+                cur_step = self.global_step
+                # vectors = list(zip(*self.validation_step_outputs))
+                index_mapper = self.trainer.datamodule.val_dataloader().dataset.index_mapper
+                image_mapper = self.trainer.datamodule.val_dataloader().dataset.image_mapper
+            else:
+                # data_loader = self.trainer.datamodule.test_dataloader()
+                patt = re.compile("step(\d*)")
+                cur_step = re.search(patt, Path(self.trainer.ckpt_path).stem).group(1)
+                # vectors = list(zip(*self.test_step_outputs))
+                index_mapper = self.trainer.datamodule.val_dataloader().dataset.index_mapper
+                image_mapper = self.trainer.datamodule.val_dataloader().dataset.image_mapper
+
+            # 将vectors的list转换为tensor
+            # text_embeds_all, text_feats_all, text_atts_all, image_embeds_all, image_feats_all, image_atts_all
+            # vectors = evaluate.val_irtr_encoding(self, data_loader)
+            vectors = [torch.randn([25009, 40, 768], device='cuda:0'),
+                       torch.randn([25009, 768], device='cuda:0'),
+                       torch.randn([25009, 40], device='cuda:0'),
+                       torch.randn([5000, 50, 768], device='cuda:0'),
+                       torch.randn([5000, 768], device='cuda:0'),
+                       torch.randn([5000, 40, 768], device='cuda:0'),]
+            # 进行相似度得分的计算
+            if '1k' in self.hparams.config['coco_scale']:
+                # 使用mscoco的1k测试集
+                results = defaultdict(list)
+                for i in range(5):
+                    assert len(vectors[-1]) % 5 == 0, "图片无法均匀切分"
+                    # 创建映射，因为数据集实际情况不完全是1图片对应5文本
+                    # 有的对应6或4文本，因此需要借助image_mapper定位文本下表
+                    image_step = int(len(vectors[-1]) / 5)
+                    # 定位文本的开头结尾位置（text_e为文本结束位置的下一个标签）
+                    text_s, text_e = image_mapper[i * image_step][0], image_mapper[(i + 1) * image_step - 1][-1] + 1
+
+                    sub_index_mapper = dict()
+                    for j in range(text_s, text_e):
+                        # print(f"index_mapper[{j}]:{index_mapper[j]}")
+                        sub_index_mapper[j - text_s] = copy.deepcopy(index_mapper[j])
+                        sub_index_mapper[j - text_s][0] -= i * image_step
+
+                    sub_text_vectors = [embeds[text_s:text_e] for embeds in vectors[:3]]
+                    sub_image_vectors = [embeds[i * image_step:(i + 1) * image_step] for embeds in vectors[3:]]
+                    sub_vectors = sub_text_vectors + sub_image_vectors
+
+                    # score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, sub_vectors)
+                    score_val_i2t, score_val_t2i = np.random.randn(len(sub_image_vectors[0]), len(sub_text_vectors[0])),\
+                        np.random.randn(len(sub_text_vectors[0]), len(sub_image_vectors[0]))
+                    val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i,
+                                                          sub_index_mapper)
+                    for k, v in val_result.items():
+                        results[k].append(v)
+                for k, v in results.items():
+                    results[k] = np.mean(v)
+                    self.logger.experiment.add_scalar(f"{phase}_{dataset}1k/{k}", np.mean(v), cur_step)
+                print(results)
+
+
+
+            if '5k' in self.hparams.config['coco_scale']:
+                # 使用mscoco的5k测试集
+                score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, vectors)
+                val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i, index_mapper)
                 for k, v in val_result.items():
                     self.logger.experiment.add_scalar(f"{phase}_{dataset}5k/{k}", np.mean(v), cur_step)
                 print(val_result)

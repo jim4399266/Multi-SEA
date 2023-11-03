@@ -3,11 +3,18 @@ datasets: ['coco']
 data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
 output_dir: "../outputs"
 log_dir: "../logs"
+
 # set pretrained as a file path or an url
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
+
+#datasets: ['coco']
+#data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
+#output_dir: "/root/autodl-tmp/outputs"
+#log_dir: "/root/autodl-tmp/logs"
+
 pretrained: ''
 arch: 'Aformer_queue'
-desc: '向量点乘不添加temp缩放'
+desc: '向量点乘不添加temp缩放，测试添加1k数据集后代码是否正常'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -15,13 +22,13 @@ test_dataset_len: -1
 shuffle: True # 训练集是否打乱
 task_name: {'irtr': 1}
 get_recall_metric: True
-top_k: 32
+top_k: 64
 queue_size: 500
 distill: False
 momentum: 0.995
 alpha: 0.4
 negative_all_rank: True
-coco_scale: ['1k','5k'] #测试集使用1k，5k还是都用
+coco_scale: ['1k'] #测试集使用1k，5k还是都用
 
 # ----------------------  Lightning Trainer Setting  ------------------------------
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
@@ -34,7 +41,7 @@ batch_size: 200  # this is a desired batch size; pl trainer will accumulate grad
 per_gpu_batch_size: 50  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
-num_workers: 8
+num_workers: 0
 precision: 32
 max_grad_norm: 1.
 max_epoch: 10
@@ -45,10 +52,11 @@ warmup_steps: 0.15
 image_encoder_config:
   vit_name: 'ViT-B-32'
   vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
 #  vit_name: 'ViT-L-14'
 #  vit: '/home/tzj/pretrained_models/ViT/ViT-L-14.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
-  patch_size: 14 # 送入vit的图片块的像素
+  patch_size: 32 # 送入vit的图片块的像素
   train_transform_keys: ["clip"] # 预处理图片的模型（将图片处理为image_size * image_size）
   val_transform_keys: ["clip"]
 #  image_embed_size: 512
@@ -58,6 +66,7 @@ image_encoder_config:
 # ----------------------  Text Setting  ----------------------
 text_encoder_config:
   tokenizer_name: 'roberta-base'
+#  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
   tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
 #  tokenizer_name: 'roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
@@ -68,7 +77,8 @@ text_encoder_config:
   mlm_prob: 0.15 # mlm遮罩比例
 
 # ----------------------  Transformer Setting  ----------------------
-aformer_config_path: '/home/tzj/codes/my_model/src_old/configs/aformer_config.json'
+aformer_config_path: 'subsrc/configs/aformer_config.json'
+#aformer_config_path: '/home/tzj/codes/my_model/src_old/configs/aformer_config.json'
 num_top_layer: 6  # 融合模块的层数
 hidden_size: 768
 #hidden_size: 768

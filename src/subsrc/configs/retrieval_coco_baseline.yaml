@@ -27,7 +27,7 @@ per_gpu_batch_size: 50  # you should define this manually with per_gpu_batch_siz
 num_nodes: 1
 pin_memory: True
 num_workers: 8
-precision: 32
+precision: 64
 max_grad_norm: 1.
 max_epoch: 6
 max_steps: -1
