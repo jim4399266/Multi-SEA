@@ -10,8 +10,6 @@ from collections import defaultdict
 import torch.distributed as dist
 from .dist_utils import all_gather_with_grad, concat_all_gather
 
-
-
 @torch.no_grad()
 def val_irtr_encoding(pl_module, data_loader):
     text_embeds_all = []
@@ -47,7 +45,7 @@ def val_irtr_recall_sort(pl_module, vectors):
     text_embeds_all, text_feats_all, text_atts_all,\
         image_embeds_all, image_feats_all, image_atts_all = vectors
     config = pl_module.hparams.config
-    device = config['device']
+    device = text_feats_all.device
     # 粗排，筛选 top_k 个候选集
     sims_matrix = image_feats_all @ text_feats_all.t()
     score_matrix_i2t = torch.full((len(image_feats_all), len(text_feats_all)), -100.).to(device)
@@ -98,7 +96,7 @@ def val_irtr_recall_sort(pl_module, vectors):
             mode='t2i'
         )
         score_t2i = pl_module.itm_head(text2image_output.last_hidden_state[:, 0])[:, 1]
-        score_matrix_t2i[start + i, topk_idx] = score_t2i + topk_sim
+        score_matrix_t2i[start + i, topk_idx] = score_t2i + topk_sim  #TODO  topk_sim 远大于 score_t2i
 
     # 多卡情况下，同步进度
     if pl_module.trainer.world_size > 1:
@@ -108,21 +106,21 @@ def val_irtr_recall_sort(pl_module, vectors):
 
     return score_matrix_i2t.cpu().numpy(), score_matrix_t2i.cpu().numpy()
 
-#TODO
-@torch.no_grad()
-def val_irtr(pl_module, data_loader):
-    vectors = val_irtr_encoding(pl_module, data_loader)
 
-    if '1k' in pl_module.hparams.config['coco_scale']:
-        # 使用mscoco的1k测试集
-
-    if '5k' in pl_module.hparams.config['coco_scale']:
-        # 使用mscoco的5k测试集
-        score_val_i2t, score_val_t2i = val_irtr_recall_sort(pl_module, vectors)
-        val_result = calculate_score(score_val_i2t, score_val_t2i, data_loader.dataset.index_mapper)
-
-    if pl_module.hparams.config['coco_scale'] == '':
-        # 使用默认数据集（mscoco5k）
+# @torch.no_grad()
+# def val_irtr(pl_module, vectors):
+#     if '1k' in pl_module.hparams.config['coco_scale']:
+#         # 使用mscoco的1k测试集
+#
+#
+#     if '5k' in pl_module.hparams.config['coco_scale']:
+#         # 使用mscoco的5k测试集
+#         score_val_i2t, score_val_t2i = val_irtr_recall_sort(pl_module, vectors)
+#         val_result = calculate_score(score_val_i2t, score_val_t2i, data_loader.dataset.index_mapper)
+#         for item in ['txt_r1', 'txt_r5', 'txt_r10', 'txt_r_mean', 'img_r1', 'img_r5', 'img_r10', 'img_r_mean', 'r_mean']:
+#             self.logger.experiment.add_scalar(f"{phase}_{dataset}{sacle}/{item}", val_result[item], cur_step)
+#     if pl_module.hparams.config['coco_scale'] == '':
+#         # 使用默认数据集（mscoco5k）
 
 
 @torch.no_grad()

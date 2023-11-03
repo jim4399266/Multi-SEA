@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from typing import Union, Optional, List, Dict
 from PIL import Image
+from collections import defaultdict
 # import sys
 # sys.path.append('..')
 from ..transforms import keys_to_transforms
@@ -89,13 +90,23 @@ class CocoKarpathyBaseDataset(Dataset):
         # value元组中，第一位代表图片的下标，
         # 第二位代表图片对应标题的下标（例：每张图片有5个标题，那么第二位就是0，1，2，3，4这5个数
         self.index_mapper = dict()
+        self.image_mapper = defaultdict(list)
+
         if text_column_name != '' and not self.image_only:
             j = 0
             all_texts = self.all_texts[:dataset_len] if dataset_len >= 0 else self.all_texts
             for i, texts in enumerate(all_texts):
+                # # 统一每张图片对应5条文本，去除多余文本
+                # if len(texts) > 5:
+                #     print(i, "--", len(texts))
+                #     texts = texts[:5]
+                #     self.all_texts[i] = texts
+                # elif len(texts) < 5:
+                #     print(i, "--", len(texts))
                 for _j in range(len(texts)):
                     # 构建文本和图片的映射关系：第j段文本是第i张图片中的第_j个文本（_j： 0~4）
-                    self.index_mapper[j] = (i, _j)
+                    self.image_mapper[i].append(j)
+                    self.index_mapper[j] = [i, _j]
                     j += 1
         # 如果没有文本，则只有图片的下标
         else:
