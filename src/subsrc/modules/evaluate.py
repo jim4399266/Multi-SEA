@@ -10,8 +10,6 @@ from collections import defaultdict
 import torch.distributed as dist
 from .dist_utils import all_gather_with_grad, concat_all_gather
 
-
-
 @torch.no_grad()
 def val_irtr_encoding(pl_module, data_loader):
     text_embeds_all = []
