@@ -24,10 +24,11 @@ def get_pretrained_tokenizer(from_pretrained):
                 use_fast=False)
         torch.distributed.barrier()
     else:
-        return AutoTokenizer.from_pretrained(
-            from_pretrained,
-            do_lower_case='uncased' in from_pretrained,
-            use_fast=False)
+        return AutoTokenizer.from_pretrained(from_pretrained)
+        # return AutoTokenizer.from_pretrained(
+        #     from_pretrained,
+        #     do_lower_case='uncased' in from_pretrained,
+        #     use_fast=False)
 
 class BaseDataModule(LightningDataModule):
     def __init__(self, config):
