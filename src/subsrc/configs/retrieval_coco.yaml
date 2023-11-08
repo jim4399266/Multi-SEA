@@ -1,16 +1,16 @@
 # 常规设置
-#datasets: ['coco']
-#data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
-#output_dir: "../outputs"
-#log_dir: "../logs"
+datasets: ['coco']
+data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
+output_dir: "../outputs"
+log_dir: "../logs"
 
 # set pretrained as a file path or an url
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
 
-datasets: ['coco']
-data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
-output_dir: "/root/autodl-tmp/outputs"
-log_dir: "/root/tf-logs"
+#datasets: ['coco']
+#data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
+#output_dir: "/root/autodl-tmp/outputs"
+#log_dir: "/root/tf-logs"
 
 pretrained: ''
 arch: 'Aformer_queue'
@@ -33,26 +33,26 @@ coco_scale: ['5k'] #测试集使用1k，5k还是都用
 # ----------------------  Lightning Trainer Setting  ------------------------------
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
 fast_dev_run: False # 快速检验，取 n 个train, val, test batches
-val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
-check_val_every_n_epoch: 1 # 每几个epoch验证一次
+# val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
+check_val_every_n_epoch: 2 # 每几个epoch验证一次
 accelerator: 'gpu'
 devices: [3,4]
-batch_size: 200  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 50  # you should define this manually with per_gpu_batch_size=#
+batch_size: 1024  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
+per_gpu_batch_size: 64  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8
 precision: 32
 max_grad_norm: 1.
-max_epoch: 10
+max_epoch: 20
 max_steps: -1
 warmup_steps: 0.15
 
 # ----------------------  Image Setting  ----------------------
 image_encoder_config:
   vit_name: 'ViT-B-32'
-#  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
-  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
 #  vit_name: 'ViT-L-14'
 #  vit: '/home/tzj/pretrained_models/ViT/ViT-L-14.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
@@ -65,11 +65,12 @@ image_encoder_config:
 
 # ----------------------  Text Setting  ----------------------
 text_encoder_config:
-  tokenizer_name: 'deberta-v3-base'
-  tokenizer: '/root/autodl-tmp/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
-#  tokenizer_name: 'roberta-base'
+#  tokenizer_name: 'deberta-v3-base'
+#  tokenizer: '/root/autodl-tmp/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
+#  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
+  tokenizer_name: 'roberta-base'
 #  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
-#  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
 #  tokenizer_name: 'roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
 #  vocab_size: 128100

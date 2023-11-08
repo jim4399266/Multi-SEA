@@ -113,7 +113,9 @@ def main(args, config):
         # limit_test_batches=config.get(config['limit_test_batches'], None),
         # limit_predict_batches=config.get(config['limit_predict_batches'], None),
         num_sanity_val_steps=config['num_sanity_val_steps'],
-        val_check_interval=config['val_check_interval'],
+        val_check_interval=config.get('val_check_interval', None),
+        check_val_every_n_epoch=config.get('check_val_every_n_epoch', None),
+
     )
 
     if args.test_only:
