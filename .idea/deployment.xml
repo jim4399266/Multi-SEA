@@ -75,7 +75,7 @@
       <paths name="tzj_server@100.92.137.141:13579 pt2">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/codes/my_retrieval_model" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

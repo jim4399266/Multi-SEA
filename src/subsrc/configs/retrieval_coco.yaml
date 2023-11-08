@@ -37,7 +37,7 @@ fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 check_val_every_n_epoch: 2 # 每几个epoch验证一次
 accelerator: 'gpu'
 devices: [3,4]
-batch_size: 1024  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
+batch_size: 512  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
 per_gpu_batch_size: 64  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
@@ -65,6 +65,8 @@ image_encoder_config:
 
 # ----------------------  Text Setting  ----------------------
 text_encoder_config:
+#  tokenizer_name: 'cocolm-base'
+#  tokenizer: '/home/tzj/pretrained_models/en-cocolm-base'
 #  tokenizer_name: 'deberta-v3-base'
 #  tokenizer: '/root/autodl-tmp/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
 #  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-base-mnli-fever-anli'

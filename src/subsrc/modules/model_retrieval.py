@@ -22,6 +22,7 @@ from .model_base import BaseModule
 from .AFormer import AFormer
 # from .AFormer_b import AFormer_b
 
+
 class RetrievalModule(BaseModule):
     def __init__(self, config):
         super().__init__()
@@ -336,7 +337,6 @@ class RetrievalModuleWithQueue(BaseModule):
 
     def epoch_wrapup(self, phase):
         the_metric = 0
-        total_loss = 0
         dataset = self.hparams.config['datasets'][0]
         if not self.training:
             if phase == 'val':
@@ -357,13 +357,6 @@ class RetrievalModuleWithQueue(BaseModule):
             # 将vectors的list转换为tensor
             # text_embeds_all, text_feats_all, text_atts_all, image_embeds_all, image_feats_all, image_atts_all
             vectors = [torch.cat(vec, dim=0) for vec in vectors]
-            # vectors = evaluate.val_irtr_encoding(self, data_loader)
-            # vectors = [torch.randn([25009, 40, 768], device='cuda:0'),
-            #            torch.randn([25009, 768], device='cuda:0'),
-            #            torch.randn([25009, 40], device='cuda:0'),
-            #            torch.randn([5000, 50, 768], device='cuda:0'),
-            #            torch.randn([5000, 768], device='cuda:0'),
-            #            torch.randn([5000, 40, 768], device='cuda:0'),]
             # 进行相似度得分的计算
             if '1k' in self.hparams.config['coco_scale']:
                 # 使用mscoco的1k测试集
@@ -387,8 +380,6 @@ class RetrievalModuleWithQueue(BaseModule):
                     sub_vectors = sub_text_vectors + sub_image_vectors
 
                     score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, sub_vectors)
-                    # score_val_i2t, score_val_t2i = np.random.randn(len(sub_image_vectors[0]), len(sub_text_vectors[0])),\
-                    #     np.random.randn(len(sub_text_vectors[0]), len(sub_image_vectors[0]))
                     val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i,
                                                           sub_index_mapper)
                     for k, v in val_result.items():
@@ -397,8 +388,6 @@ class RetrievalModuleWithQueue(BaseModule):
                     results[k] = np.mean(v)
                     self.logger.experiment.add_scalar(f"{phase}_{dataset}1k/{k}", np.mean(v), cur_step)
                 print(results)
-
-
 
             if '5k' in self.hparams.config['coco_scale']:
                 # 使用mscoco的5k测试集
@@ -421,32 +410,24 @@ class RetrievalModuleWithQueue(BaseModule):
             self.logger.experiment.add_scalar(
                 f'{phase}/the_metric', the_metric, cur_step
             )
-            # self.log(f'{phase}/irtr/the_metric', the_metric)
-            # self.log(f'{phase}/r_mean', val_result['r_mean'])
             self.log(f'{phase}/the_metric', the_metric)
 
     def epoch_wrapup_debug(self, phase):
         the_metric = 0
-        total_loss = 0
         dataset = self.hparams.config['datasets'][0]
         if not self.training:
             if phase == 'val':
-                # data_loader = self.trainer.datamodule.val_dataloader()
                 cur_step = self.global_step
-                # vectors = list(zip(*self.validation_step_outputs))
                 index_mapper = self.trainer.datamodule.val_dataloader().dataset.index_mapper
                 image_mapper = self.trainer.datamodule.val_dataloader().dataset.image_mapper
             else:
-                # data_loader = self.trainer.datamodule.test_dataloader()
                 patt = re.compile("step(\d*)")
                 cur_step = re.search(patt, Path(self.trainer.ckpt_path).stem).group(1)
-                # vectors = list(zip(*self.test_step_outputs))
                 index_mapper = self.trainer.datamodule.val_dataloader().dataset.index_mapper
                 image_mapper = self.trainer.datamodule.val_dataloader().dataset.image_mapper
 
             # 将vectors的list转换为tensor
             # text_embeds_all, text_feats_all, text_atts_all, image_embeds_all, image_feats_all, image_atts_all
-            # vectors = evaluate.val_irtr_encoding(self, data_loader)
             vectors = [torch.randn([25009, 40, 768], device='cuda:0'),
                        torch.randn([25009, 768], device='cuda:0'),
                        torch.randn([25009, 40], device='cuda:0'),
@@ -487,8 +468,6 @@ class RetrievalModuleWithQueue(BaseModule):
                     self.logger.experiment.add_scalar(f"{phase}_{dataset}1k/{k}", np.mean(v), cur_step)
                 print(results)
 
-
-
             if '5k' in self.hparams.config['coco_scale']:
                 # 使用mscoco的5k测试集
                 score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, vectors)
@@ -510,8 +489,6 @@ class RetrievalModuleWithQueue(BaseModule):
             self.logger.experiment.add_scalar(
                 f'{phase}/the_metric', the_metric, cur_step
             )
-            # self.log(f'{phase}/irtr/the_metric', the_metric)
-            # self.log(f'{phase}/r_mean', val_result['r_mean'])
             self.log(f'{phase}/the_metric', the_metric)
 
     def create_text_encoder(self, config):
