@@ -161,10 +161,11 @@ class CocoKarpathyBaseDataset(Dataset):
         encodings = self.tokenizer(
             texts[text_id],
             padding='max_length',
+            add_special_tokens=True,
             max_length=self.max_text_len,
             truncation=True,
             return_special_tokens_mask=True,  # 遮住特殊token的mask
-            return_tensors='pt'
+            return_tensors='pt',
         )
         # 注意区分key中的text和cap，在collate会有不同处理
         return {

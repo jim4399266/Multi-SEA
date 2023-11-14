@@ -153,7 +153,7 @@ if __name__ == '__main__':
         config['val_dataset_len'] = int(-1)
         # config['val_dataset_len'] = int(5 * config['per_gpu_batch_size'])
         config['test_dataset_len'] = int(5 * config['per_gpu_batch_size'])
-        config['fast_dev_run'] = False
+        config['fast_dev_run'] = 5
         config['shuffle'] = False
         config['num_workers'] = 0
         # config['max_epoch'] = 3

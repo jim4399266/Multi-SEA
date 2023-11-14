@@ -10,7 +10,11 @@ import re
 from pathlib import Path
 from typing import Any, Optional, List, Dict
 from transformers import RobertaConfig, RobertaModel
-from transformers import get_linear_schedule_with_warmup, get_cosine_schedule_with_warmup
+from transformers import (
+    get_linear_schedule_with_warmup,
+    get_cosine_schedule_with_warmup,
+    get_cosine_with_hard_restarts_schedule_with_warmup,)
+
 
 
 # import sys
@@ -88,8 +92,6 @@ class BaseModule(pl.LightningModule):
 
         self.ptr_queue[0] = ptr
 
-
-
     def cal_steps(self):
         # 计算 max_steps 和 warmup_steps
         if self.trainer.max_steps == None or self.trainer.max_epochs != None:
@@ -112,6 +114,11 @@ class BaseModule(pl.LightningModule):
             )
         elif self.hparams.config['scheduler'] == 'cosine':
             scheduler = get_cosine_schedule_with_warmup(
+                optimizer, num_warmup_steps=warmup_steps, num_training_steps=max_steps,
+                num_cycles=self.hparams.config['num_cycles']
+            )
+        elif self.hparams.config['scheduler'] == 'cosine_hard':
+            scheduler = get_cosine_with_hard_restarts_schedule_with_warmup(
                 optimizer, num_warmup_steps=warmup_steps, num_training_steps=max_steps,
                 num_cycles=self.hparams.config['num_cycles']
             )

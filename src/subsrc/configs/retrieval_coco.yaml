@@ -34,17 +34,17 @@ coco_scale: ['5k'] #测试集使用1k，5k还是都用
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
 fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 # val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
-check_val_every_n_epoch: 2 # 每几个epoch验证一次
+check_val_every_n_epoch: 5 # 每几个epoch验证一次
 accelerator: 'gpu'
-devices: [3,4]
-batch_size: 512  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 64  # you should define this manually with per_gpu_batch_size=#
+devices: [0,1]
+batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
+per_gpu_batch_size: 100  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8
 precision: 32
 max_grad_norm: 1.
-max_epoch: 20
+max_epoch: 100
 max_steps: -1
 warmup_steps: 0.15
 
@@ -65,16 +65,19 @@ image_encoder_config:
 
 # ----------------------  Text Setting  ----------------------
 text_encoder_config:
-#  tokenizer_name: 'cocolm-base'
-#  tokenizer: '/home/tzj/pretrained_models/en-cocolm-base'
-#  tokenizer_name: 'deberta-v3-base'
-#  tokenizer: '/root/autodl-tmp/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
+#  tokenizer_name: 'deberta-v3-large-mnli'
+#  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-large-mnli-fever-anli-ling-wanli'
+#  tokenizer_name: 'electra-large'
+#  tokenizer: '/home/tzj/pretrained_models/en-electra-large-discriminator'
+
+  tokenizer_name: 'xlm-roberta-large'
+  tokenizer: '/home/tzj/pretrained_models/xlm-roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
-  tokenizer_name: 'roberta-base'
+#  tokenizer_name: 'roberta-base'
 #  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
-  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
-#  tokenizer_name: 'roberta-large'
-#  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
+#  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+  # tokenizer_name: 'roberta-large'
+  # tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
 #  vocab_size: 128100
 #  text_embed_size: 768
   max_text_len: 40
@@ -107,7 +110,10 @@ optimizer:
   lr_mult_head: 5 # multiply lr for downstream heads
   lr_mult_cross_modal: 5  # multiply lr for the cross-modal module
 
-scheduler: 'linear'
+#scheduler: 'linear'
+
+scheduler: 'cosine'
+num_cycles: 2
 #scheduler: {
 #  sched: cosine,
 #  lr: 1e-5,
