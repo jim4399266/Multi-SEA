@@ -110,8 +110,18 @@ class BertSelfAttention(nn.Module):
 
         self.query = nn.Linear(config.hidden_size, self.all_head_size)
         if is_cross_attention:
-            self.key = nn.Linear(config.encoder_width, self.all_head_size)
-            self.value = nn.Linear(config.encoder_width, self.all_head_size)
+            if not config.attention_groups:
+                self.key = nn.Linear(config.encoder_width, self.all_head_size)
+                self.value = nn.Linear(config.encoder_width, self.all_head_size)
+            else:
+                # Group-Query Attention
+                # TODO AttributeError: 'Linear' object has no attribute 'repeat'
+                kv_head = self.num_attention_heads // config.attention_groups
+                kv_head_size = kv_head * self.attention_head_size
+                group_key = nn.Linear(config.encoder_width, kv_head_size)
+                group_value = nn.Linear(config.encoder_width, kv_head_size)
+                # self.key = group_key.repeat(1,config.attention_groups)
+                # self.value = group_value.repeat(1,config.attention_groups)
         else:
             self.key = nn.Linear(config.hidden_size, self.all_head_size)
             self.value = nn.Linear(config.hidden_size, self.all_head_size)

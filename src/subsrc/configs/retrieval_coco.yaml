@@ -70,14 +70,14 @@ text_encoder_config:
 #  tokenizer_name: 'electra-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-electra-large-discriminator'
 
-  tokenizer_name: 'xlm-roberta-large'
-  tokenizer: '/home/tzj/pretrained_models/xlm-roberta-large'
+#  tokenizer_name: 'xlm-roberta-large'
+#  tokenizer: '/home/tzj/pretrained_models/xlm-roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
 #  tokenizer_name: 'roberta-base'
 #  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
 #  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
-  # tokenizer_name: 'roberta-large'
-  # tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
+  tokenizer_name: 'roberta-large'
+  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
 #  vocab_size: 128100
 #  text_embed_size: 768
   max_text_len: 40
@@ -88,6 +88,7 @@ text_encoder_config:
 aformer_config_path: 'subsrc/configs/aformer_config.json'
 num_top_layer: 6  # 融合模块的层数
 hidden_size: 768
+attention_groups: False
 #hidden_size: 768
 #num_heads: 12 # 注意力的head数量
 #num_layers: 6 #
@@ -112,7 +113,7 @@ optimizer:
 
 #scheduler: 'linear'
 
-scheduler: 'cosine'
+scheduler: 'cosine_hard'
 num_cycles: 2
 #scheduler: {
 #  sched: cosine,

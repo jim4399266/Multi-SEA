@@ -230,11 +230,12 @@ class RetrievalModuleWithQueue(BaseModule):
         print(Path.cwd())
         aformer_config = BertConfig.from_json_file(config['aformer_config_path'])
         aformer_config.num_hidden_layers = config['num_top_layer']
+        aformer_config.attention_groups = config['attention_groups']
         self.aformer = AFormer(aformer_config)
 
         self.itm_head = nn.Linear(hidden_size, 2)
 
-        self.set_metrics()\
+        self.set_metrics()
 
         #create the queue
         self.register_buffer("image_queue", torch.rand(hidden_size, self.queue_size))
