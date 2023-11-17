@@ -120,8 +120,10 @@ class BertSelfAttention(nn.Module):
                 kv_head_size = kv_head * self.attention_head_size
                 group_key = nn.Linear(config.encoder_width, kv_head_size)
                 group_value = nn.Linear(config.encoder_width, kv_head_size)
-                # self.key = group_key.repeat(1,config.attention_groups)
-                # self.value = group_value.repeat(1,config.attention_groups)
+                group_key.weight.repeat_(1,config.attention_groups)
+                group_value.weight.repeat_(1,config.attention_groups)
+                self.key = group_key
+                self.value = group_value
         else:
             self.key = nn.Linear(config.hidden_size, self.all_head_size)
             self.value = nn.Linear(config.hidden_size, self.all_head_size)
