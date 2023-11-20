@@ -40,6 +40,8 @@ def main(args, config):
         'layer': config['num_top_layer'],
         'from_': '',
     }
+    if config['attention_groups']:
+        prefix_dict.update({'arch': f'{config["arch"]}_GQA_{config["attention_groups"]}'})
     if config['pretrained'] == "":
         prefix_dict.update(
             {'from_': f'{config["image_encoder_config"]["vit_name"]}_'
@@ -150,9 +152,10 @@ if __name__ == '__main__':
         config['devices'] = eval(args.devices)
     if args.debug:
         config['train_dataset_len'] = int(5 * config['per_gpu_batch_size'])
-        config['val_dataset_len'] = int(-1)
-        # config['val_dataset_len'] = int(5 * config['per_gpu_batch_size'])
+        # config['val_dataset_len'] = int(-1)
+        config['val_dataset_len'] = int(5 * config['per_gpu_batch_size'])
         config['test_dataset_len'] = int(5 * config['per_gpu_batch_size'])
+        config['batch_size'] = config['per_gpu_batch_size']
         config['fast_dev_run'] = 5
         config['shuffle'] = False
         config['num_workers'] = 0

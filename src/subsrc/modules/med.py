@@ -48,6 +48,54 @@ from transformers.models.bert.configuration_bert import BertConfig
 
 logger = logging.get_logger(__name__)
 
+class GQA_Linear1(nn.Linear):
+    '''
+        从dim=0维度进行共享，变换矩阵：[hidden_size // groups, all_head_size]
+    '''
+    def __init__(self, in_features: int, heads: int, per_head_size:int, attention_groups: int = 1, bias: bool = True,
+                 device=None, dtype=None):
+        super().__init__(in_features, heads * per_head_size, bias, device, dtype)
+        self.linear = nn.Linear(in_features, heads * per_head_size, bias, device, dtype)
+        self.n_rep = attention_groups
+        self.heads = heads
+        self.per_head_size = per_head_size
+
+    def forward(self, input: Tensor) -> Tensor:
+        bs, slen, dim = input.shape
+        span = dim // self.n_rep
+        x = torch.stack([self.linear(input[:, :, i * span: (i+1) *span]) for i in range(self.n_rep)], dim=0)
+        x = torch.sum(x, dim=0)
+        return x
+class GQA_Linear(nn.Linear):
+    '''
+    从dim=1维度进行共享，变换矩阵：[hidden_size, all_head_size // groups]
+    '''
+    def __init__(self, in_features: int, heads: int, per_head_size:int, attention_groups: int = 1, bias: bool = True,
+                 device=None, dtype=None):
+        super().__init__(in_features, heads * per_head_size, bias, device, dtype)
+        # self.linear = nn.Linear(in_features, heads * per_head_size, bias, device, dtype)
+        self.n_rep = attention_groups
+        self.heads = heads
+        self.per_head_size = per_head_size
+
+    def repeat_kv(self, x: torch.Tensor, n_rep: int) -> torch.Tensor:
+        """torch.repeat_interleave(x, dim=2, repeats=n_rep)"""
+        bs, slen, n_kv_heads, head_dim = x.shape
+        if n_rep == 1:
+            return x
+        return (
+            x[:, :, :, None, :]
+            .expand(bs, slen, n_kv_heads, n_rep, head_dim)
+            .reshape(bs, slen, n_kv_heads * n_rep * head_dim)
+        )
+    def forward(self, input: Tensor) -> Tensor:
+        bs, slen, dim = input.shape
+        x = F.linear(input, self.weight, self.bias)
+        x = x.view(bs, slen, self.heads, self.per_head_size)
+        x = self.repeat_kv(x, self.n_rep)
+        assert x.shape[-1] == dim
+        return x
+
 
 class BertEmbeddings(nn.Module):
     """Construct the embeddings from word and position embeddings."""
@@ -111,19 +159,18 @@ class BertSelfAttention(nn.Module):
         self.query = nn.Linear(config.hidden_size, self.all_head_size)
         if is_cross_attention:
             if not config.attention_groups:
-                self.key = nn.Linear(config.encoder_width, self.all_head_size)
+                self.key = nn.Linear(config.encoder_width, self.all_head_size )
                 self.value = nn.Linear(config.encoder_width, self.all_head_size)
             else:
                 # Group-Query Attention
-                # TODO AttributeError: 'Linear' object has no attribute 'repeat'
                 kv_head = self.num_attention_heads // config.attention_groups
-                kv_head_size = kv_head * self.attention_head_size
-                group_key = nn.Linear(config.encoder_width, kv_head_size)
-                group_value = nn.Linear(config.encoder_width, kv_head_size)
-                group_key.weight.repeat_(1,config.attention_groups)
-                group_value.weight.repeat_(1,config.attention_groups)
-                self.key = group_key
-                self.value = group_value
+                self.key = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
+                self.value = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
+            # else:
+            #     Group-Query Attention 1
+                # in_features = config.encoder_width // config.attention_groups
+                # self.key = GQA_Linear1(in_features, self.num_attention_heads, self.attention_head_size, config.attention_groups)
+                # self.value = GQA_Linear1(in_features, self.num_attention_heads, self.attention_head_size, config.attention_groups)
         else:
             self.key = nn.Linear(config.hidden_size, self.all_head_size)
             self.value = nn.Linear(config.hidden_size, self.all_head_size)
