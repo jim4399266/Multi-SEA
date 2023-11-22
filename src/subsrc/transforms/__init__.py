@@ -1,3 +1,5 @@
+from transformers import ViTImageProcessor, ViTFeatureExtractor
+
 from .transform import (
     pixelbert_transform,
     pixelbert_transform_randaug,
@@ -20,5 +22,13 @@ _transforms = {
     "clip_randaug": clip_transform_randaug,
 }
 
+
 def keys_to_transforms(keys: list, size=224):
-    return [_transforms[key](size=size) for key in keys]
+    trans = []
+    for key in keys:
+        if key not in _transforms:
+            trans.append(ViTImageProcessor.from_pretrained(key))
+        else:
+            trans.append(_transforms[key](size=size))
+    return trans
+    # return [_transforms[key](size=size) for key in keys]

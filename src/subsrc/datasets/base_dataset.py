@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Union, Optional, List, Dict
 from PIL import Image
 from collections import defaultdict
+from transformers import ViTImageProcessor, ViTFeatureExtractor
 # import sys
 # sys.path.append('..')
 from ..transforms import keys_to_transforms
@@ -40,7 +41,7 @@ class CocoKarpathyBaseDataset(Dataset):
         assert len(transform_keys) > 0
         super().__init__()
         self.image_size = image_size
-        self.transforms = keys_to_transforms(transform_keys, size=image_size)
+        self.transforms = keys_to_transforms(transform_keys, size=image_size, )
         # 是否用到clip的transform
         self.clip_transform = False
         for key in transform_keys:
@@ -149,7 +150,11 @@ class CocoKarpathyBaseDataset(Dataset):
     def get_image(self, image_index, image_key='image'):
         image = self.get_raw_image(image_index, image_key)
         # 利用transform转换为统一格式
-        image_tensor = [tr(image) for tr in self.transforms]
+        if self.clip_transform:
+            image_tensor = [tr(image) for tr in self.transforms]
+        else:
+            image_tensor = [tr(image, return_tensors="pt")['pixel_values'].squeeze() for tr in self.transforms]
+
         return {
             'image': image_tensor,
             'image_index': image_index,

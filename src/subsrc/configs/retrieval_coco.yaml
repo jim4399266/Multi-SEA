@@ -36,7 +36,7 @@ fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 # val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
 check_val_every_n_epoch: 5 # 每几个epoch验证一次
 accelerator: 'gpu'
-devices: [0]
+devices: [1]
 batch_size: 512  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
 per_gpu_batch_size: 32  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
@@ -50,15 +50,18 @@ warmup_steps: 0.15
 
 # ----------------------  Image Setting  ----------------------
 image_encoder_config:
-  vit_name: 'ViT-B-16'
-  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
-#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+  vit_name: 'ViT-B-32'
+  vit: '/home/tzj/pretrained_models/vit-large-patch16-224-in21k'  # vit模型权重
+#  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
 #  vit_name: 'ViT-L-14'
 #  vit: '/home/tzj/pretrained_models/ViT/ViT-L-14.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
   patch_size: 16 # 送入vit的图片块的像素
-  train_transform_keys: ["clip"] # 预处理图片的模型（将图片处理为image_size * image_size）
-  val_transform_keys: ["clip"]
+  # 预处理图片的模型（将图片处理为image_size * image_size）
+  train_transform_keys: ['/home/tzj/pretrained_models/vit-large-patch16-224-in21k']
+  val_transform_keys: ['/home/tzj/pretrained_models/vit-large-patch16-224-in21k']
+#  train_transform_keys: ["clip"]
+#  val_transform_keys: ["clip"]
 #  image_embed_size: 512
 #  vit_grad_ckpt: True
 #  vit_ckpt_layer: 4
