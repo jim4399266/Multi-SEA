@@ -161,16 +161,16 @@ class BertSelfAttention(nn.Module):
             if not config.attention_groups:
                 self.key = nn.Linear(config.encoder_width, self.all_head_size )
                 self.value = nn.Linear(config.encoder_width, self.all_head_size)
-            else:
-                # Group-Query Attention
-                kv_head = self.num_attention_heads // config.attention_groups
-                self.key = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
-                self.value = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
             # else:
-            #     Group-Query Attention 1
-                # in_features = config.encoder_width // config.attention_groups
-                # self.key = GQA_Linear1(in_features, self.num_attention_heads, self.attention_head_size, config.attention_groups)
-                # self.value = GQA_Linear1(in_features, self.num_attention_heads, self.attention_head_size, config.attention_groups)
+                # Group-Query Attention
+                # kv_head = self.num_attention_heads // config.attention_groups
+                # self.key = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
+                # self.value = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
+            else:
+                # Group-Query Attention 1
+                in_features = config.encoder_width // config.attention_groups
+                self.key = GQA_Linear1(in_features, self.num_attention_heads, self.attention_head_size, config.attention_groups)
+                self.value = GQA_Linear1(in_features, self.num_attention_heads, self.attention_head_size, config.attention_groups)
         else:
             self.key = nn.Linear(config.hidden_size, self.all_head_size)
             self.value = nn.Linear(config.hidden_size, self.all_head_size)

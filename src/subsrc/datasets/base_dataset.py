@@ -41,7 +41,7 @@ class CocoKarpathyBaseDataset(Dataset):
         assert len(transform_keys) > 0
         super().__init__()
         self.image_size = image_size
-        self.transforms = keys_to_transforms(transform_keys, size=image_size, )
+        self.transforms = keys_to_transforms(transform_keys, size=image_size)
         # 是否用到clip的transform
         self.clip_transform = False
         for key in transform_keys:
