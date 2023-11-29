@@ -67,7 +67,7 @@ def main(args, config):
         name=log_name,
         # default_hp_metric=False,    # 禁用 PyTorch Lightning 默认的 hparams 评估指标, 启用 TensorboardX
     )
-
+    print('-------------\n',log_name, '\n----------------------')
     modelsummary_callback = pl.callbacks.ModelSummary(max_depth=1)
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=save_dir / f"version_{logger.version}",
@@ -137,7 +137,6 @@ def main(args, config):
 
 
 if __name__ == '__main__':
-    print(Path().absolute())
     parser = argparse.ArgumentParser()
     # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco_baseline.yaml')
     parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
@@ -153,8 +152,8 @@ if __name__ == '__main__':
     if args.debug:
         config['train_dataset_len'] = int(5 * config['per_gpu_batch_size'])
         # config['val_dataset_len'] = int(-1)
-        config['val_dataset_len'] = int(5 * config['per_gpu_batch_size'])
-        config['test_dataset_len'] = int(5 * config['per_gpu_batch_size'])
+        config['val_dataset_len'] = int(10 * config['per_gpu_batch_size'])
+        config['test_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['batch_size'] = config['per_gpu_batch_size']
         config['fast_dev_run'] = 5
         config['shuffle'] = False

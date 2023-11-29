@@ -55,7 +55,7 @@ class GQA_Linear1(nn.Linear):
     def __init__(self, in_features: int, heads: int, per_head_size:int, attention_groups: int = 1, bias: bool = True,
                  device=None, dtype=None):
         super().__init__(in_features, heads * per_head_size, bias, device, dtype)
-        self.linear = nn.Linear(in_features, heads * per_head_size, bias, device, dtype)
+        # self.linear = nn.Linear(in_features, heads * per_head_size, bias, device, dtype)
         self.n_rep = attention_groups
         self.heads = heads
         self.per_head_size = per_head_size
@@ -63,7 +63,7 @@ class GQA_Linear1(nn.Linear):
     def forward(self, input: Tensor) -> Tensor:
         bs, slen, dim = input.shape
         span = dim // self.n_rep
-        x = torch.stack([self.linear(input[:, :, i * span: (i+1) *span]) for i in range(self.n_rep)], dim=0)
+        x = torch.stack([F.linear(input[:, :, i * span: (i+1) *span], self.weight, self.bias) for i in range(self.n_rep)], dim=0)
         x = torch.sum(x, dim=0)
         return x
 class GQA_Linear(nn.Linear):
@@ -162,12 +162,13 @@ class BertSelfAttention(nn.Module):
                 self.key = nn.Linear(config.encoder_width, self.all_head_size )
                 self.value = nn.Linear(config.encoder_width, self.all_head_size)
             # else:
-                # Group-Query Attention
-                # kv_head = self.num_attention_heads // config.attention_groups
-                # self.key = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
-                # self.value = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
+            #     ## Group-Query Attention
+            #     kv_head = self.num_attention_heads // config.attention_groups
+            #     self.key = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
+            #     self.value = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
+
             else:
-                # Group-Query Attention 1
+                ## Group-Query Attention 1
                 in_features = config.encoder_width // config.attention_groups
                 self.key = GQA_Linear1(in_features, self.num_attention_heads, self.attention_head_size, config.attention_groups)
                 self.value = GQA_Linear1(in_features, self.num_attention_heads, self.attention_head_size, config.attention_groups)
