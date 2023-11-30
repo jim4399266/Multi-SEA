@@ -151,8 +151,8 @@ if __name__ == '__main__':
     if args.devices != '':
         config['devices'] = eval(args.devices)
     if args.debug:
-        config['train_dataset_len'] = int(5 * config['per_gpu_batch_size'])
-        config['val_dataset_len'] = int(-1)
+        # config['train_dataset_len'] = int(5 * config['per_gpu_batch_size'])
+
         # config['val_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['test_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['batch_size'] = config['per_gpu_batch_size']

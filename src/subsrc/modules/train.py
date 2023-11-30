@@ -234,10 +234,10 @@ def train_irtr_with_queue(pl_module, batch):
         image_feat_all = torch.cat([image_feats_q.t(), pl_module.image_queue.clone().detach()], dim=1)
         text_feat_all = torch.cat([text_feats_q.t(), pl_module.text_queue.clone().detach()], dim=1)
 
-    # sim_i2t = image_feats @ text_feat_all / pl_module.temp
-    # sim_t2i = text_feats @ image_feat_all / pl_module.temp
-    sim_i2t = image_feats @ text_feat_all
-    sim_t2i = text_feats @ image_feat_all
+    sim_i2t = image_feats @ text_feat_all / pl_module.temp
+    sim_t2i = text_feats @ image_feat_all / pl_module.temp
+    # sim_i2t = image_feats @ text_feat_all
+    # sim_t2i = text_feats @ image_feat_all
 
     if pl_module.distill:
         sim_i2t_q  = image_feats @ text_feat_all / pl_module.temp

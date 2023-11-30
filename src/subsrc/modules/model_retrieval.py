@@ -220,7 +220,7 @@ class RetrievalModuleWithQueue(BaseModule):
         hidden_size = config['hidden_size']
 
         self.distill = config['distill']
-        self.temp = nn.Parameter(0.07 * torch.ones([]))
+        self.temp = nn.Parameter(0.2 * torch.ones([]))
         self.queue_size = config['queue_size']
         self.negative_all_rank = config['negative_all_rank']
 
@@ -228,7 +228,7 @@ class RetrievalModuleWithQueue(BaseModule):
         self.text_encoder, text_width = self.create_text_encoder(text_encoder_config)
         self.vision_proj = nn.Linear(vision_width, hidden_size)
         self.text_proj = nn.Linear(text_width, hidden_size)
-        print(Path.cwd())
+
         aformer_config = BertConfig.from_json_file(config['aformer_config_path'])
         aformer_config.num_hidden_layers = config['num_top_layer']
         aformer_config.attention_groups = config['attention_groups']
