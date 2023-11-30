@@ -144,7 +144,7 @@ class BaseModule(pl.LightningModule):
     def set_tasks(self):
         self.current_tasks = [k for k, v in self.hparams.config['task_name'].items() if v >= 1]
 
-    def epoch_wrapup(self, phase):
+    def epoch_wrapup(self, step_outputs, phase):
         raise NotImplementedError("epoch wrapup for different tasks")
 
 

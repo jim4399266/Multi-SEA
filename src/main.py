@@ -100,7 +100,7 @@ def main(args, config):
         strategy=strategy,
         # strategy='ddp_find_unused_parameters_true',
         use_distributed_sampler=False,
-
+        # enable_model_summary=True,
         # benchmark=True,
         max_epochs=config['max_epoch'],
         callbacks=callbacks,
@@ -108,8 +108,8 @@ def main(args, config):
         # accumulate_grad_batches=None if config['manual_optimization'] else grad_steps,
         gradient_clip_val=config['max_grad_norm'],
         accumulate_grad_batches=grad_steps,
-        # weights_summary='top',
-        fast_dev_run=config['fast_dev_run'],
+
+        fast_dev_run=config.get('fast_dev_run', False),
         # limit_train_batches=config.get(config['limit_train_batches'], None),
         # limit_val_batches=config.get(config['limit_val_batches'], None),
         # limit_test_batches=config.get(config['limit_test_batches'], None),
@@ -151,11 +151,11 @@ if __name__ == '__main__':
         config['devices'] = eval(args.devices)
     if args.debug:
         config['train_dataset_len'] = int(5 * config['per_gpu_batch_size'])
-        # config['val_dataset_len'] = int(-1)
-        config['val_dataset_len'] = int(10 * config['per_gpu_batch_size'])
+        config['val_dataset_len'] = int(-1)
+        # config['val_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['test_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['batch_size'] = config['per_gpu_batch_size']
-        config['fast_dev_run'] = 5
+        # config['fast_dev_run'] = 5
         config['shuffle'] = False
         config['num_workers'] = 0
         # config['max_epoch'] = 3

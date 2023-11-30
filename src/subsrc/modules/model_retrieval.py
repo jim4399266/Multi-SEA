@@ -12,7 +12,7 @@ from transformers import AutoTokenizer, AutoModel, AutoConfig, BertConfig
 from transformers import ViTImageProcessor, ViTModel
 from pathlib import Path
 from collections import defaultdict
-
+from copy import deepcopy
 # from .bert_model import BertCrossLayer, BertAttention
 from .clip_model import build_model, adapt_position_encoding
 from .dist_utils import concat_all_gather, all_gather_with_grad
@@ -311,7 +311,7 @@ class RetrievalModuleWithQueue(BaseModule):
         return irtr_loss
 
     def on_train_epoch_end(self) -> None:
-        self.epoch_wrapup(phase='train')
+        self.epoch_wrapup(None, phase='train')
         self.training_step_outputs.clear()  # free memory
 
     def validation_step(self, batch, batch_idx):
@@ -319,34 +319,50 @@ class RetrievalModuleWithQueue(BaseModule):
         image_feats, image_embeds, image_atts = self.encoding_image(batch)
         text_feats, text_embeds, text_atts = self.encoding_text(batch)
 
-        self.validation_step_outputs.append([text_embeds, text_feats, text_atts,
+        if self.hparams.config['image_encoder_config']['image_size'] == 384 \
+                and self.hparams.config['image_encoder_config']['patch_size'] == 16:
+            # 张量维度太高，先放入cpu
+            self.validation_step_outputs.append([text_embeds.cpu(), text_feats.cpu(), text_atts.cpu(),
+                                             image_embeds.cpu(), image_feats.cpu(), image_atts.cpu()])
+        else:
+            self.validation_step_outputs.append([text_embeds, text_feats, text_atts,
                                              image_embeds, image_feats, image_atts])
+
 
     def on_validation_epoch_end(self) -> None:
         # 不传入out了，直接从self.validation_step_outputs获取每个val step的返回
-        # all_preds = torch.stack(self.validation_step_outputs)
-        self.epoch_wrapup(phase='val')
+        self.epoch_wrapup(self.validation_step_outputs, phase='val')
         self.validation_step_outputs.clear()  # free memory
 
     def test_step(self, batch, batch_idx):
         # pass
         image_feats, image_embeds, image_atts = self.encoding_image(batch)
         text_feats, text_embeds, text_atts = self.encoding_text(batch)
-        self.test_step_outputs.append([text_embeds, text_feats, text_atts,
+
+        if self.hparams.config['image_encoder_config']['image_size'] == 384 \
+                and self.hparams.config['image_encoder_config']['patch_size'] == 16:
+            # 张量维度太高，先放入cpu
+            self.test_step_outputs.append([text_embeds.cpu(), text_feats.cpu(), text_atts.cpu(),
+                                             image_embeds.cpu(), image_feats.cpu(), image_atts.cpu()])
+        else:
+            self.test_step_outputs.append([text_embeds, text_feats, text_atts,
                                              image_embeds, image_feats, image_atts])
 
     def on_test_epoch_end(self) -> None:
-        self.epoch_wrapup(phase='test')
+        self.epoch_wrapup(self.test_step_outputs, phase='test')
         self.test_step_outputs.clear()  # free memory
 
-    def epoch_wrapup(self, phase):
+    def epoch_wrapup(self, step_outputs, phase):
         the_metric = 0
         dataset = self.hparams.config['datasets'][0]
         if not self.training:
             if phase == 'val':
                 # data_loader = self.trainer.datamodule.val_dataloader()
                 cur_step = self.global_step
-                vectors = list(zip(*self.validation_step_outputs))
+                # vectors = deepcopy(self.validation_step_outputs)
+                # self.validation_step_outputs.clear()
+                # vectors = list(zip(*vectors))
+
                 index_mapper = self.trainer.datamodule.val_dataloader().dataset.index_mapper
                 image_mapper = self.trainer.datamodule.val_dataloader().dataset.image_mapper
             else:
@@ -354,13 +370,27 @@ class RetrievalModuleWithQueue(BaseModule):
                 patt = re.compile("step(\d*)")
                 cur_step = 0 if self.trainer.ckpt_path == None else \
                     re.search(patt, Path(self.trainer.ckpt_path).stem).group(1)
-                vectors = list(zip(*self.test_step_outputs))
+                # vectors = list(zip(*self.test_step_outputs))
+                # self.test_step_outputs.clear()
                 index_mapper = self.trainer.datamodule.test_dataloader().dataset.index_mapper
                 image_mapper = self.trainer.datamodule.test_dataloader().dataset.image_mapper
 
-            # 将vectors的list转换为tensor
+            # 将vectors的list转换为tensor，张量转移到cpu上，防止显存溢出
             # text_embeds_all, text_feats_all, text_atts_all, image_embeds_all, image_feats_all, image_atts_all
-            vectors = [torch.cat(vec, dim=0) for vec in vectors]
+            vectors = list(zip(*step_outputs))
+            if self.hparams.config['image_encoder_config']['image_size'] == 384 \
+                    and self.hparams.config['image_encoder_config']['patch_size'] == 16:
+                step_outputs.clear()
+                torch.cuda.empty_cache()
+                for i in range(len(vectors)):
+                    vectors[i] = torch.cat(vectors[i], dim=0)
+                    torch.cuda.empty_cache()
+                for i,vec in enumerate(vectors):
+                    vectors[i] = vec.to(self.device)
+                    torch.cuda.empty_cache()
+            else:
+               vectors = [torch.cat(vec, dim=0) for vec in vectors]
+
             # 进行相似度得分的计算
             if '1k' in self.hparams.config['coco_scale']:
                 # 使用mscoco的1k测试集
