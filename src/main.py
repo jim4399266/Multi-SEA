@@ -35,6 +35,7 @@ def main(args, config):
         'bs': config["batch_size"],
         'pbs': config["per_gpu_batch_size"],
         'queue_size': config['queue_size'],
+        'topk': config['top_k'],
         'epoch': config["max_epoch"],
         'lr': config["optimizer"]["init_lr"],
         'layer': config['num_top_layer'],

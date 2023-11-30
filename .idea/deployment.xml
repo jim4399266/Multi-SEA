@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="tzjserver_tzj@192.168.3.4:13579 pt2" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="内蒙古A-301_root@region-3.seetacloud.com:51792 pt2" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="cad04_tzj@10.112.17.225:17877">
+      <paths name="cad02_tzj@10.112.67.227:17877">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="cad04_tzj@10.112.17.225:17877 blip">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="cad04_tzj@10.112.17.225:17877 blip2">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
@@ -23,73 +37,59 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="isi@49.232.216.2:8000">
+      <paths name="isi@127.0.0.1:10024 retr_copy">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="tzj@10.112.67.227:17877 meter">
+      <paths name="tzj@10.112.179.49:17877">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="tzj@10.112.67.227:17877 password">
+      <paths name="tzj@10.112.179.49:17877 bert_joint">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="tzj@10.112.67.227:17877 pt1.11">
+      <paths name="tzj@10.112.179.49:17877 jigsaw">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="tzj@192.168.1.21:13579 my_clip">
+      <paths name="tzj@10.112.179.49:17877 password">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="tzj@192.168.3.4:13579 password">
+      <paths name="tzj_server@100.92.137.141:13579 pt2">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/codes/my_retrieval_model" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="内蒙古A-089_root@region-3.seetacloud.com:26043 pt2">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="tzj@192.168.3.4:13579 pt2">
+      <paths name="内蒙古A-301_root@region-3.seetacloud.com:51792 pt2">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="tzjserver_tzj@100.93.153.79:13579 pt2">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="tzjserver_tzj@192.168.3.4:13579 pt2">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/codes/my_retrieval_model" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="内蒙古A301_root@region-3.seetacloud.com:51792 pt2">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/codes/my_retrieval_model" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

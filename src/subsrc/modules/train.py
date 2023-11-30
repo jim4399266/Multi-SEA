@@ -240,10 +240,10 @@ def train_irtr_with_queue(pl_module, batch):
     sim_t2i = text_feats @ image_feat_all
 
     if pl_module.distill:
-        # sim_i2t_q  = image_feats @ text_feat_all / pl_module.temp
-        # sim_t2i_q  = text_feats @ image_feat_all / pl_module.temp
-        sim_i2t_q = image_feats @ text_feat_all
-        sim_t2i_q = text_feats @ image_feat_all
+        sim_i2t_q  = image_feats @ text_feat_all / pl_module.temp
+        sim_t2i_q  = text_feats @ image_feat_all / pl_module.temp
+        # sim_i2t_q = image_feats @ text_feat_all
+        # sim_t2i_q = text_feats @ image_feat_all
 
         sim_i2t_targets = alpha * F.softmax(sim_i2t_q, dim=1) + (1 - alpha) * sim_targets
         sim_t2i_targets = alpha * F.softmax(sim_t2i_q, dim=1) + (1 - alpha) * sim_targets
@@ -268,10 +268,10 @@ def train_irtr_with_queue(pl_module, batch):
             image_feats_world = concat_all_gather(image_feats, pl_module.trainer.world_size)
             text_feats_world = concat_all_gather(text_feats, pl_module.trainer.world_size)
 
-            # sim_i2t = image_feats @ text_feats_world.t() / pl_module.temp
-            # sim_t2i = text_feats @ image_feats_world.t() / pl_module.temp
-            sim_i2t = image_feats @ text_feats_world.t()
-            sim_t2i = text_feats @ image_feats_world.t()
+            sim_i2t = image_feats @ text_feats_world.t() / pl_module.temp
+            sim_t2i = text_feats @ image_feats_world.t() / pl_module.temp
+            # sim_i2t = image_feats @ text_feats_world.t()
+            # sim_t2i = text_feats @ image_feats_world.t()
 
             weights_i2t = F.softmax(sim_i2t, dim=1)
             weights_i2t.masked_fill_(mask, 0)
@@ -303,11 +303,11 @@ def train_irtr_with_queue(pl_module, batch):
         with torch.no_grad():
             mask = torch.eq(idx, idx.t())
 
-            # sim_i2t = image_feats @ text_feats.t() / pl_module.temp
-            # sim_t2i = text_feats @ image_feats.t() / pl_module.temp
+            sim_i2t = image_feats @ text_feats.t() / pl_module.temp
+            sim_t2i = text_feats @ image_feats.t() / pl_module.temp
 
-            sim_i2t = image_feats @ text_feats.t()
-            sim_t2i = text_feats @ image_feats.t()
+            # sim_i2t = image_feats @ text_feats.t()
+            # sim_t2i = text_feats @ image_feats.t()
 
             weights_i2t = F.softmax(sim_i2t, dim=1)
             weights_i2t.masked_fill_(mask, 0)

@@ -1,20 +1,20 @@
 # 常规设置
-datasets: ['coco']
-data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
-output_dir: "../outputs"
-log_dir: "../logs"
+#datasets: ['coco']
+#data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
+#output_dir: "../outputs"
+#log_dir: "../logs"
 
 # set pretrained as a file path or an url
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
 
-#datasets: ['coco']
-#data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
-#output_dir: "/root/autodl-tmp/outputs"
-#log_dir: "/root/tf-logs"
+datasets: ['coco']
+data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
+output_dir: "/root/autodl-tmp/outputs"
+log_dir: "/root/tf-logs"
 
 pretrained: ''
 arch: 'Aformer_queue'
-desc: '测试VIL-B-16/384'
+desc: 'temp加入'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -34,11 +34,11 @@ coco_scale: ['5k'] #测试集使用1k，5k还是都用
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
 fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 # val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
-check_val_every_n_epoch: 10 # 每几个epoch验证一次
+check_val_every_n_epoch: 5 # 每几个epoch验证一次
 accelerator: 'gpu'
-devices: [0]
+devices: [0,1]
 batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 10  # you should define this manually with per_gpu_batch_size=#
+per_gpu_batch_size: 100  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8
@@ -50,19 +50,19 @@ warmup_steps: 0.15
 
 # ----------------------  Image Setting  ----------------------
 image_encoder_config:
-  vit_name: 'ViT-B-16'
-  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
+  vit_name: 'ViT-B-32'
+#  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
+#  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
 
-  image_size: 384 # 调整后的图片像素
-  patch_size: 16 # 送入vit的图片块的像素
+  image_size: 224 # 调整后的图片像素
+  patch_size: 32 # 送入vit的图片块的像素
   # 预处理图片的模型（将图片处理为image_size * image_size）
-  train_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
-  val_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
-#  train_transform_keys: ["clip"]
-#  val_transform_keys: ["clip"]
-#  image_embed_size: 512
-#  vit_grad_ckpt: True
-#  vit_ckpt_layer: 4
+#  train_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
+#  val_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
+  train_transform_keys: ["clip"]
+  val_transform_keys: ["clip"]
+
 
 # ----------------------  Text Setting  ----------------------
 text_encoder_config:
@@ -75,12 +75,11 @@ text_encoder_config:
 #  tokenizer: '/home/tzj/pretrained_models/xlm-roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
   tokenizer_name: 'roberta-base'
-#  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
-  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
+#  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
 #  tokenizer_name: 'roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
-#  vocab_size: 128100
-#  text_embed_size: 768
+
   max_text_len: 40
   whole_word_masking: False # note that whole_word_masking does not work for RoBERTa
   mlm_prob: 0.15 # mlm遮罩比例
@@ -90,9 +89,8 @@ aformer_config_path: 'subsrc/configs/aformer_config.json'
 num_top_layer: 6  # 融合模块的层数
 hidden_size: 768
 attention_groups: False
-#hidden_size: 768
+
 #num_heads: 12 # 注意力的head数量
-#num_layers: 6 #
 ## mlp_ratio = 1 # 中间层的维度：hidden_size * mlp_ratio
 #mlp_ratio: 4 # 中间层的维度：hidden_size * mlp_ratio
 #drop_rate: 0.1 # dropout
