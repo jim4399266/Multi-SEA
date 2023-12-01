@@ -220,7 +220,7 @@ class RetrievalModuleWithQueue(BaseModule):
         hidden_size = config['hidden_size']
 
         self.distill = config['distill']
-        self.temp = nn.Parameter(0.2 * torch.ones([]))
+        self.temp = nn.Parameter(1.0 * torch.ones([]))
         self.queue_size = config['queue_size']
         self.negative_all_rank = config['negative_all_rank']
 
@@ -545,7 +545,24 @@ class RetrievalModuleWithQueue(BaseModule):
     def configure_optimizers(self):
         opt_config = self.hparams.config['optimizer']
         max_steps, warmup_steps = self.cal_steps()
-        optimizer = torch.optim.AdamW(params=self.parameters(),
+        optimizer_grouped_parameters = [
+            {
+                "params": [
+                    p
+                    for n, p in self.named_parameters()
+                    if not any(nd in n for nd in ["temp"])
+                ]
+            },
+            {
+                "params": [
+                    p
+                    for n, p in self.named_parameters()
+                    if any(nd in n for nd in ["temp"])
+                ],
+                "lr": 1e-3,
+            },
+            ]
+        optimizer = torch.optim.AdamW(params=optimizer_grouped_parameters,
                                       lr=opt_config['init_lr'],
                                       weight_decay=opt_config['weight_decay'],
                                       eps=opt_config['eps'],
