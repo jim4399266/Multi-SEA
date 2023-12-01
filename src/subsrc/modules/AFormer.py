@@ -1,3 +1,4 @@
+from typing import Optional, Tuple
 import torch
 import torch.distributed as dist
 import torch.nn.functional as F
@@ -6,8 +7,9 @@ import pytorch_lightning as pl
 from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions, BaseModelOutputWithPastAndCrossAttentions
 from transformers.modeling_utils import apply_chunking_to_forward
 
-
 from .med import BertPreTrainedModel, BertAttention, BertIntermediate, BertPooler, BertOutput
+
+
 
 class AFormerLayer(nn.Module):
     def __init__(self, config):
