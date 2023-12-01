@@ -4,21 +4,118 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from torch import nn
 import pytorch_lightning as pl
-
-from transformers.modeling_outputs import (
-    BaseModelOutputWithPastAndCrossAttentions,
-    BaseModelOutputWithPoolingAndCrossAttentions,
-)
-from transformers.modeling_utils import (
-    PreTrainedModel,
-    apply_chunking_to_forward,
-    find_pruneable_heads_and_indices,
-    prune_linear_layer,
-)
-from transformers.utils import logging
-from transformers.models.bert.configuration_bert import BertConfig
+from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions, BaseModelOutputWithPastAndCrossAttentions
+from transformers.modeling_utils import apply_chunking_to_forward
 
 from .med import BertPreTrainedModel, BertAttention, BertIntermediate, BertPooler, BertOutput
+
+class RMSNorm(torch.nn.Module):
+    def __init__(self, dim: int, eps: float = 1e-5):
+        """
+        Initialize the RMSNorm normalization layer.
+        Args:
+            dim (int): The dimension of the input tensor.
+            eps (float, optional): A small value added to the denominator for numerical stability. Default is 1e-6.
+        Attributes:
+            eps (float): A small value added to the denominator for numerical stability.
+            weight (nn.Parameter): Learnable scaling parameter.
+        """
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(dim))
+
+    def _norm(self, x):
+        """
+        Apply the RMSNorm normalization to the input tensor.
+        Args:
+            x (torch.Tensor): The input tensor.
+        Returns:
+            torch.Tensor: The normalized tensor.
+        """
+        return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
+
+    def forward(self, x):
+        """
+        Forward pass through the RMSNorm layer.
+        Args:
+            x (torch.Tensor): The input tensor.
+        Returns:
+            torch.Tensor: The output tensor after applying RMSNorm.
+        """
+        output = self._norm(x.float()).type_as(x)
+        return output * self.weight
+
+
+class FeedForward(nn.Module):
+    def __init__(
+        self,
+        dim: int,
+        hidden_dim: int,
+        multiple_of: int,
+        ffn_dim_multiplier: Optional[float],
+    ):
+        """
+        Initialize the FeedForward module.
+
+        Args:
+            dim (int): Input dimension.
+            hidden_dim (int): Hidden dimension of the feedforward layer.
+            multiple_of (int): Value to ensure hidden dimension is a multiple of this value.
+            ffn_dim_multiplier (float, optional): Custom multiplier for hidden dimension. Defaults to None.
+
+        Attributes:
+            w1 (ColumnParallelLinear): Linear transformation for the first layer.
+            w2 (RowParallelLinear): Linear transformation for the second layer.
+            w3 (ColumnParallelLinear): Linear transformation for the third layer.
+
+        """
+        super().__init__()
+        hidden_dim = int(2 * hidden_dim / 3)
+        # custom dim factor multiplier
+        if ffn_dim_multiplier is not None:
+            hidden_dim = int(ffn_dim_multiplier * hidden_dim)
+        hidden_dim = multiple_of * ((hidden_dim + multiple_of - 1) // multiple_of)
+
+        self.w1 = ColumnParallelLinear(
+            dim, hidden_dim, bias=False, gather_output=False, init_method=lambda x: x
+        )
+        self.w2 = RowParallelLinear(
+            hidden_dim, dim, bias=False, input_is_parallel=True, init_method=lambda x: x
+        )
+        self.w3 = ColumnParallelLinear(
+            dim, hidden_dim, bias=False, gather_output=False, init_method=lambda x: x
+        )
+
+    def forward(self, x):
+        return self.w2(F.silu(self.w1(x)) * self.w3(x))
+
+class BertOutput(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.dense = nn.Linear(config.intermediate_size, config.hidden_size)
+        self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+
+    def forward(self, hidden_states, input_tensor):
+        hidden_states = self.dense(hidden_states)
+        hidden_states = self.dropout(hidden_states)
+        hidden_states = self.LayerNorm(hidden_states + input_tensor)
+        return hidden_states
+
+
+class Pooler(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+        self.activation = nn.Tanh()
+
+    def forward(self, hidden_states):
+        # We "pool" the model by simply taking the hidden state corresponding
+        # to the first token.
+        first_token_tensor = hidden_states[:, 0]
+        pooled_output = self.dense(first_token_tensor)
+        pooled_output = self.activation(pooled_output)
+        return pooled_output
 
 class AFormerLayer(nn.Module):
     def __init__(self, config):
@@ -96,7 +193,7 @@ class AFormerEncoder(nn.Module):
         super().__init__()
         self.config = config
         self.layers = nn.ModuleList([AFormerLayer(config) for i in range(config.num_hidden_layers)])
-        self.gradient_checkpoint = False
+        self.norm = RMSNorm(config['hidden_size'])
 
     def forward(self,
                 hidden_states,
@@ -142,6 +239,8 @@ class AFormerEncoder(nn.Module):
         if output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
 
+        # all_hidden_states = self.norm(all_hidden_states)
+
         if not return_dict:
             return tuple(
                 v for v in [
@@ -162,7 +261,7 @@ class AFormerEncoder(nn.Module):
         )
 
 
-class AFormer(BertPreTrainedModel):
+class AFormer(nn.Module):
     '''
     A_Former作为桥梁连接两个模态的信息。每层包含 self-attention, cross-attention, ffn三个模块。
     AFormer首先接收 各自模态的 last_hidden_state[bs, len, dim]，遮住cross-attention，得到 feature
