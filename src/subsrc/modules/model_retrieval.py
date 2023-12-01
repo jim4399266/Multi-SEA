@@ -559,7 +559,7 @@ class RetrievalModuleWithQueue(BaseModule):
                     for n, p in self.named_parameters()
                     if any(nd in n for nd in ["temp"])
                 ],
-                "lr": 1e-3,
+                "lr": 5e-4,
             },
             ]
         optimizer = torch.optim.AdamW(params=optimizer_grouped_parameters,
