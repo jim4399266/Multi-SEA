@@ -156,7 +156,7 @@ if __name__ == '__main__':
         # config['val_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['test_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['batch_size'] = config['per_gpu_batch_size']
-        # config['fast_dev_run'] = 5
+        config['fast_dev_run'] = 5
         config['shuffle'] = False
         config['num_workers'] = 0
         # config['max_epoch'] = 3

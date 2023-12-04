@@ -13,8 +13,8 @@ log_dir: "../logs"
 #log_dir: "/root/tf-logs"
 
 pretrained: ''
-arch: 'Aformer_queue'
-desc: 'temp加入'
+arch: 'Aformer_SwiGLU_queue'
+desc: '加入RMSNorm和SwiGLU，替换原有Transformer Block中的LayerNorm和FFN'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
