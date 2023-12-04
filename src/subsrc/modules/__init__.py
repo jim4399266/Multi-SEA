@@ -7,6 +7,7 @@ _models = {
     # "baseline": RetrievalModule,
     # "aformer":RetrievalModule,
     "aformer_queue":RetrievalModuleWithQueue,
+    "aformer_swiglu_queue":RetrievalModuleWithQueue,
     # "aformer": RetrievalMomentumModule
 }
 

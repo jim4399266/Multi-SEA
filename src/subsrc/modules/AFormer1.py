@@ -294,7 +294,7 @@ class AFormerAttention(nn.Module):
             past_key_value,
             output_attentions,
         )
-        attention_output = self_outputs + self.dropout(self.dense(self_outputs))
+        attention_output = self_outputs[0] + self.dropout(self.dense(self_outputs[0]))
         # attention_output = self.output(self_outputs[0], hidden_states)
         outputs = (attention_output,) + self_outputs[1:]  # add attentions if we output them
         return outputs
@@ -438,7 +438,7 @@ class AFormerEncoder(nn.Module):
         if output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
 
-        all_hidden_states = self.norm(all_hidden_states)
+        hidden_states = self.norm(hidden_states)
 
         if not return_dict:
             return tuple(
