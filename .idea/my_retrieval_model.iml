@@ -5,4 +5,7 @@
     <orderEntry type="jdk" jdkName="Remote Python 3.9.0 (sftp://cad04_tzj@10.112.17.225:17877/home/tzj/miniconda3/envs/pt2/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
+  <component name="PyDocumentationSettings">
+    <option name="renderExternalDocumentation" value="true" />
+  </component>
 </module>

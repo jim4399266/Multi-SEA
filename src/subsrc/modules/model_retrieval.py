@@ -232,6 +232,9 @@ class RetrievalModuleWithQueue(BaseModule):
         aformer_config = BertConfig.from_json_file(config['aformer_config_path'])
         aformer_config.num_hidden_layers = config['num_top_layer']
         aformer_config.attention_groups = config['attention_groups']
+        aformer_config.hidden_size = config['hidden_size']
+        aformer_config.encoder_width = config['hidden_size']
+        aformer_config.num_attention_heads = config['num_heads']
         self.aformer = AFormer(aformer_config)
 
         self.itm_head = nn.Linear(hidden_size, 2)

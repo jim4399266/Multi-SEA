@@ -14,7 +14,7 @@ log_dir: "../logs"
 
 pretrained: ''
 arch: 'Aformer_queue'
-desc: 'temp加入'
+desc: '调整Aformer维度'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -88,9 +88,9 @@ text_encoder_config:
 aformer_config_path: 'subsrc/configs/aformer_config.json'
 num_top_layer: 6  # 融合模块的层数
 hidden_size: 768
-attention_groups: False
 
-#num_heads: 12 # 注意力的head数量
+num_heads: 24 # 注意力的head数量
+attention_groups: False
 ## mlp_ratio = 1 # 中间层的维度：hidden_size * mlp_ratio
 #mlp_ratio: 4 # 中间层的维度：hidden_size * mlp_ratio
 #drop_rate: 0.1 # dropout
