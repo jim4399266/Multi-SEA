@@ -32,8 +32,9 @@ def main(args, config):
     prefix_dict = {
         'task': '-'.join((list(config['task_name'].keys()))),
         'arch': config['arch'],
-        'Asize': config['hidden_size'],
-        'heads': config['num_heads'],
+        # 'Asize': config['hidden_size'],
+        # 'heads': config['num_heads'],
+        'beta': config['beta'],
         'bs': config["batch_size"],
         'pbs': config["per_gpu_batch_size"],
         'queue_size': config['queue_size'],
