@@ -233,7 +233,6 @@ class RetrievalModuleWithQueue(BaseModule):
         aformer_config = BertConfig.from_json_file(config['aformer_config_path'])
         aformer_config.num_hidden_layers = config['num_top_layer']
         aformer_config.attention_groups = config['attention_groups']
-        aformer_config.beta = 1.0
         self.aformer = AFormer(aformer_config)
 
         self.itm_head = nn.Linear(hidden_size, 2)
@@ -561,7 +560,7 @@ class RetrievalModuleWithQueue(BaseModule):
                     for n, p in self.named_parameters()
                     if any(nd in n for nd in ["temp"])
                 ],
-                "lr": 1e-3,
+                "lr": 5e-4,
             },
             ]
         optimizer = torch.optim.AdamW(params=optimizer_grouped_parameters,
