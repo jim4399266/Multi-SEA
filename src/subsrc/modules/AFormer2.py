@@ -10,7 +10,9 @@ from transformers.modeling_utils import apply_chunking_to_forward
 from torch import Tensor, device, dtype, nn
 import math
 
-
+'''
+Norm后置测试
+'''
 class Swish(nn.Module):
     def __init__(self, beta: float=1.0):
         super().__init__()
@@ -262,17 +264,23 @@ class AFormerSelfAttention(nn.Module):
         outputs = outputs + (past_key_value,)
         return outputs
 
+class AFormerAttentionOutput(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.attention_norm = RMSNorm(config.hidden_size)
 
+    def forward(self, hidden_states, input_tensor):
+        hidden_states = self.dense(hidden_states)
+        hidden_states = self.dropout(hidden_states)
+        hidden_states = self.attention_norm(hidden_states + input_tensor)
+        return hidden_states
 class AFormerAttention(nn.Module):
     def __init__(self, config, is_cross_attention=False):
         super().__init__()
-        self.attention_norm = RMSNorm(config.hidden_size)
-        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
-        self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.self = AFormerSelfAttention(config, is_cross_attention)
-
-        # self.output = BertSelfOutput(config)
-        # self.pruned_heads = set()
+        self.output = AFormerAttentionOutput(config)
 
     def forward(
             self,
@@ -285,7 +293,7 @@ class AFormerAttention(nn.Module):
             output_attentions=False,
     ):
         self_outputs = self.self(
-            self.attention_norm(hidden_states),
+            hidden_states,
             attention_mask,
             head_mask,
             encoder_hidden_states,
@@ -293,8 +301,8 @@ class AFormerAttention(nn.Module):
             past_key_value,
             output_attentions,
         )
-        attention_output = hidden_states + self.dropout(self.dense(self_outputs[0]))
-        # attention_output = self.output(self_outputs[0], hidden_states)
+
+        attention_output = self.output(self_outputs[0], hidden_states)
         outputs = (attention_output,) + self_outputs[1:]  # add attentions if we output them
         return outputs
 
@@ -308,10 +316,10 @@ class AFormerFeedForward(nn.Module):
         self.ffn_norm = RMSNorm(config.hidden_size)
         self.swish = Swish(config.beta)
 
-    def forward(self, inputs):
-        x = self.ffn_norm(inputs)
+    def forward(self, x):
+        x = self.ffn_norm(x)
         x = self.swish(self.dense1(x)) * self.dense3(x)
-        return inputs + self.dropout(self.dense2(x))
+        return self.dropout(self.dense2(x))
 
 class AFormerLayer(nn.Module):
     def __init__(self, config):
@@ -437,7 +445,7 @@ class AFormerEncoder(nn.Module):
         if output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
 
-        hidden_states = self.norm(hidden_states)  # TODO 是否需要这个norm
+        # hidden_states = self.norm(hidden_states)  # TODO 是否需要这个norm
 
         if not return_dict:
             return tuple(

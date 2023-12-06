@@ -1,20 +1,20 @@
 # 常规设置
-#datasets: ['coco']
-#data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
-#output_dir: "../outputs"
-#log_dir: "../logs"
+datasets: ['coco']
+data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
+output_dir: "../outputs"
+log_dir: "../logs"
 
 # set pretrained as a file path or an url
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
 
-datasets: ['coco']
-data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
-output_dir: "/root/autodl-tmp/outputs"
-log_dir: "/root/tf-logs"
+#datasets: ['coco']
+#data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
+#output_dir: "/root/autodl-tmp/outputs"
+#log_dir: "/root/tf-logs"
 
 pretrained: ''
 arch: 'Aformer_SwiGLU_queue'
-desc: '加入RMSNorm和SwiGLU，替换原有Transformer Block中的LayerNorm和FFN'
+desc: '加入RMSNorm和SwiGLU，替换原有Transformer Block中的LayerNorm和FFN，去除AFormer最终输出之前的norm'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -52,8 +52,8 @@ warmup_steps: 0.15
 image_encoder_config:
   vit_name: 'ViT-B-32'
 #  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
-#  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
-  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
 
   image_size: 224 # 调整后的图片像素
   patch_size: 32 # 送入vit的图片块的像素
@@ -75,8 +75,8 @@ text_encoder_config:
 #  tokenizer: '/home/tzj/pretrained_models/xlm-roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
   tokenizer_name: 'roberta-base'
-  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
-#  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+#  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
+  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
 #  tokenizer_name: 'roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
 
@@ -89,11 +89,11 @@ aformer_config_path: 'subsrc/configs/aformer_config.json'
 num_top_layer: 6  # 融合模块的层数
 hidden_size: 768
 attention_groups: False
-beta: 0.5
+beta: 1.0
 #num_heads: 12 # 注意力的head数量
 ## mlp_ratio = 1 # 中间层的维度：hidden_size * mlp_ratio
 #mlp_ratio: 4 # 中间层的维度：hidden_size * mlp_ratio
-#drop_rate: 0.1 # dropout
+drop_rate: 0.1 # dropout
 
 # ----------------------  Optimizer Setting  ----------------------
 optimizer:

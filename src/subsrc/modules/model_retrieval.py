@@ -20,8 +20,8 @@ from .dist_utils import concat_all_gather, all_gather_with_grad
 from . import train, evaluate
 # from .med import BertConfig, BertModel
 from .model_base import BaseModule
-# from .AFormer import AFormer
-from .AFormer1 import AFormer
+from .AFormer import AFormer
+# from .AFormer1 import AFormer
 # from .AFormer_b import AFormer_b
 
 
@@ -234,6 +234,7 @@ class RetrievalModuleWithQueue(BaseModule):
         aformer_config.num_hidden_layers = config['num_top_layer']
         aformer_config.attention_groups = config['attention_groups']
         aformer_config.beta = config['beta']
+        aformer_config.attention_probs_dropout_prob = config['drop_rate']
         self.aformer = AFormer(aformer_config)
 
         self.itm_head = nn.Linear(hidden_size, 2)
