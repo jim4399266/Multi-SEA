@@ -271,9 +271,6 @@ class AFormerAttention(nn.Module):
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.self = AFormerSelfAttention(config, is_cross_attention)
 
-        # self.output = BertSelfOutput(config)
-        # self.pruned_heads = set()
-
     def forward(
             self,
             hidden_states,
@@ -308,10 +305,10 @@ class AFormerFeedForward(nn.Module):
         self.ffn_norm = RMSNorm(config.hidden_size)
         self.swish = Swish(config.beta)
 
-    def forward(self, inputs):
-        x = self.ffn_norm(inputs)
-        x = self.swish(self.dense1(x)) * self.dense3(x)
-        return inputs + self.dropout(self.dense2(x))
+    def forward(self, input_tensor):
+        hidden_states = self.ffn_norm(input_tensor)
+        hidden_states = self.swish(self.dense1(hidden_states)) * self.dense3(hidden_states)
+        return input_tensor + self.dropout(self.dense2(hidden_states))
 
 class AFormerLayer(nn.Module):
     def __init__(self, config):
@@ -323,8 +320,6 @@ class AFormerLayer(nn.Module):
         self.t_cross_attention = AFormerAttention(config, is_cross_attention=True)
         self.i_cross_attention = AFormerAttention(config, is_cross_attention=True)
         self.ffn = AFormerFeedForward(config)
-        # self.intermediate = BertIntermediate(config)
-        # self.output = BertOutput(config)
 
     def forward(self,
                 hidden_states,

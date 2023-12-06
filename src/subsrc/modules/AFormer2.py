@@ -316,10 +316,9 @@ class AFormerFeedForward(nn.Module):
         self.ffn_norm = RMSNorm(config.hidden_size)
         self.swish = Swish(config.beta)
 
-    def forward(self, x):
-        x = self.ffn_norm(x)
-        x = self.swish(self.dense1(x)) * self.dense3(x)
-        return self.dropout(self.dense2(x))
+    def forward(self, input_tensor):
+        hidden_states = self.swish(self.dense1(input_tensor)) * self.dense3(input_tensor)
+        return self.ffn_norm(input_tensor + self.dropout(self.dense2(hidden_states)))
 
 class AFormerLayer(nn.Module):
     def __init__(self, config):

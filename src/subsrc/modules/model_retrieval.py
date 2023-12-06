@@ -20,9 +20,9 @@ from .dist_utils import concat_all_gather, all_gather_with_grad
 from . import train, evaluate
 # from .med import BertConfig, BertModel
 from .model_base import BaseModule
-from .AFormer import AFormer
-# from .AFormer1 import AFormer
-# from .AFormer_b import AFormer_b
+# from .AFormer import AFormer
+from .AFormer1 import AFormer
+
 
 
 # class RetrievalModule(BaseModule):
