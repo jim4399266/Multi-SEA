@@ -32,7 +32,7 @@ def main(args, config):
     prefix_dict = {
         'task': '-'.join((list(config['task_name'].keys()))),
         'arch': config['arch'],
-        # 'Asize': config['hidden_size'],
+        'Asize': config['hidden_size'],
         # 'heads': config['num_heads'],
         'beta': config['beta'],
         'bs': config["batch_size"],
@@ -154,12 +154,12 @@ if __name__ == '__main__':
     if args.devices != '':
         config['devices'] = eval(args.devices)
     if args.debug:
-        # config['train_dataset_len'] = int(5 * config['per_gpu_batch_size'])
-
+        config['train_dataset_len'] = int(5 * config['per_gpu_batch_size'])
         # config['val_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['test_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['batch_size'] = config['per_gpu_batch_size']
-        config['fast_dev_run'] = 5
+        config['check_val_every_n_epoch'] = 1
+        # config['fast_dev_run'] = 5
         config['shuffle'] = False
         config['num_workers'] = 0
         # config['max_epoch'] = 3

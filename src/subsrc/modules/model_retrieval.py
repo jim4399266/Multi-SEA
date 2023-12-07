@@ -21,7 +21,8 @@ from . import train, evaluate
 # from .med import BertConfig, BertModel
 from .model_base import BaseModule
 # from .AFormer import AFormer
-from .AFormer1 import AFormer
+# from .AFormer1 import AFormer
+from .AFormer2 import AFormer
 
 
 
@@ -232,9 +233,14 @@ class RetrievalModuleWithQueue(BaseModule):
 
         aformer_config = BertConfig.from_json_file(config['aformer_config_path'])
         aformer_config.num_hidden_layers = config['num_top_layer']
+        aformer_config.num_attention_heads = config['num_heads']
+        aformer_config.hidden_size = config['hidden_size']
+        aformer_config.encoder_width = config['hidden_size']
+        aformer_config.intermediate_size = config['hidden_size'] * config['mlp_ratio']
         aformer_config.attention_groups = config['attention_groups']
         aformer_config.beta = config['beta']
         aformer_config.attention_probs_dropout_prob = config['drop_rate']
+
         self.aformer = AFormer(aformer_config)
 
         self.itm_head = nn.Linear(hidden_size, 2)

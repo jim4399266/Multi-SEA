@@ -14,7 +14,7 @@ log_dir: "../logs"
 
 pretrained: ''
 arch: 'Aformer_SwiGLU_queue'
-desc: '加入RMSNorm和SwiGLU，替换原有Transformer Block中的LayerNorm和FFN，去除AFormer最终输出之前的norm'
+desc: '加入RMSNorm和SwiGLU，Norm后置'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -89,10 +89,10 @@ aformer_config_path: 'subsrc/configs/aformer_config.json'
 num_top_layer: 6  # 融合模块的层数
 hidden_size: 768
 attention_groups: False
-beta: 1.0
-#num_heads: 12 # 注意力的head数量
+beta: 0.5
+num_heads: 12 # 注意力的head数量
 ## mlp_ratio = 1 # 中间层的维度：hidden_size * mlp_ratio
-#mlp_ratio: 4 # 中间层的维度：hidden_size * mlp_ratio
+mlp_ratio: 4 # 中间层的维度：hidden_size * mlp_ratio
 drop_rate: 0.1 # dropout
 
 # ----------------------  Optimizer Setting  ----------------------

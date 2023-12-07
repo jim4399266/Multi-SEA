@@ -187,6 +187,7 @@ class AFormerSelfAttention(nn.Module):
             head_mask=None,
             encoder_hidden_states=None,
             encoder_attention_mask=None,
+            use_cache=False,
             past_key_value=None,
             output_attentions=False,
     ):
@@ -201,7 +202,7 @@ class AFormerSelfAttention(nn.Module):
             key_layer = self.transpose_for_scores(self.key(encoder_hidden_states))
             value_layer = self.transpose_for_scores(self.value(encoder_hidden_states))
             attention_mask = encoder_attention_mask
-        elif past_key_value is not None:
+        elif past_key_value is not None and use_cache:
             key_layer = self.transpose_for_scores(self.key(hidden_states))
             value_layer = self.transpose_for_scores(self.value(hidden_states))
             key_layer = torch.cat([past_key_value[0], key_layer], dim=2)
@@ -212,7 +213,8 @@ class AFormerSelfAttention(nn.Module):
 
         query_layer = self.transpose_for_scores(mixed_query_layer)
 
-        past_key_value = (key_layer, value_layer)
+
+        past_key_value = (key_layer, value_layer) if use_cache else None
 
         # Take the dot product between "query" and "key" to get the raw attention scores.
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
@@ -289,6 +291,7 @@ class AFormerAttention(nn.Module):
             head_mask=None,
             encoder_hidden_states=None,
             encoder_attention_mask=None,
+            use_cache=False,
             past_key_value=None,
             output_attentions=False,
     ):
@@ -298,6 +301,7 @@ class AFormerAttention(nn.Module):
             head_mask,
             encoder_hidden_states,
             encoder_attention_mask,
+            use_cache,
             past_key_value,
             output_attentions,
         )
@@ -339,6 +343,7 @@ class AFormerLayer(nn.Module):
                 head_mask=None,
                 encoder_hidden_states=None,
                 encoder_attention_mask=None,
+                use_cache=False,
                 past_kye_value=None,
                 output_attentions=False,
                 mode=None
@@ -350,8 +355,9 @@ class AFormerLayer(nn.Module):
                     hidden_states,
                     attention_mask,
                     head_mask,
-                    output_attentions=output_attentions,
+                    use_cache=use_cache,
                     past_key_value=self_attn_past_key_value,
+                    output_attentions=output_attentions,
                 )
         attention_output = self_attention_outputs[0]
         outputs = self_attention_outputs[1:-1]
@@ -366,6 +372,7 @@ class AFormerLayer(nn.Module):
                     head_mask,
                     encoder_hidden_states,
                     encoder_attention_mask,
+                    use_cache=use_cache,
                     output_attentions=output_attentions,
                 )
             else:
@@ -375,6 +382,7 @@ class AFormerLayer(nn.Module):
                     head_mask,
                     encoder_hidden_states,
                     encoder_attention_mask,
+                    use_cache=use_cache,
                     output_attentions=output_attentions,
                 )
             attention_output = cross_attention_outputs[0]
@@ -431,6 +439,7 @@ class AFormerEncoder(nn.Module):
                 layer_head_mask,
                 encoder_hidden_states,
                 encoder_attention_mask,
+                use_cache,
                 past_key_values,
                 output_attentions,
                 mode=mode,
