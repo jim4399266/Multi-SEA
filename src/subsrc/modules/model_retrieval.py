@@ -12,6 +12,7 @@ from transformers import AutoTokenizer, AutoModel, AutoConfig, BertConfig
 from transformers import ViTImageProcessor, ViTModel
 from pathlib import Path
 from collections import defaultdict
+from torchinfo import summary
 from copy import deepcopy
 # from .bert_model import BertCrossLayer, BertAttention
 from .clip_model import build_model, adapt_position_encoding
@@ -559,8 +560,16 @@ class RetrievalModuleWithQueue(BaseModule):
                 "params": [
                     p
                     for n, p in self.named_parameters()
-                    if not any(nd in n for nd in ["temp"])
+                    if not any(nd in n for nd in ["temp", "text_encoder"])
                 ]
+            },
+            {
+                "params": [
+                    p
+                    for n, p in self.named_parameters()
+                    if any(nd in n for nd in ["text_encoder"])
+                ],
+                "lr": opt_config['init_lr'] / 10,
             },
             {
                 "params": [
@@ -582,13 +591,29 @@ class RetrievalModuleWithQueue(BaseModule):
             'lr_scheduler': sched,
         }
 
+    def freeze_text_encoder(self, module, last_layer=0):
+        self.freeze_module(module)
+        if last_layer > 0:
+            self.unfreeze_module(module.encoder.layer[-last_layer:])
+
+    def freeze_image_encoder(self, module, last_layer=0):
+        self.freeze_module(module)
+        if last_layer > 0:
+            self.unfreeze_module(module.visual.transformer.resblocks[-last_layer:])
+            self.unfreeze_module(module.visual.ln_post)
+
     @classmethod
     def from_pretrained(cls, config):
         model = cls(config)
+        # summary(model.visual_encoder, input_size=(1,3,224,224), depth=4)
+
         model.text_encoder = AutoModel.from_pretrained(config['text_encoder_config']['tokenizer'])
         print('### load model from pretrained! ###')
-        model.freeze_module(model.text_encoder)
-        model.freeze_module(model.visual_encoder)
+        model.freeze_text_encoder(model.text_encoder, last_layer=4)
+        model.freeze_image_encoder(model.visual_encoder, last_layer=4)
+        # model.freeze_module(model.text_encoder)
+        # model.freeze_module(model.visual_encoder)
+        # print('### freeze text encoder.')
         print('### freeze text encoder and visual encoder.')
         return model
 

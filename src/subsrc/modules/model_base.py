@@ -60,6 +60,13 @@ class BaseModule(pl.LightningModule):
         for parameter in module.parameters():
             parameter.requires_grad = False
 
+    def unfreeze_module(self, module):
+        """
+        Unfreezes module's parameters.
+        """
+        for parameter in module.parameters():
+            parameter.requires_grad = True
+
     @torch.no_grad()
     def copy_params(self):
         for model_pair in self.model_pairs:
