@@ -23,7 +23,7 @@ from . import train, evaluate
 from .model_base import BaseModule
 # from .AFormer import AFormer
 # from .AFormer1 import AFormer
-from .AFormer2 import AFormer
+from .AFormer2 import AFormer, Pooler, Swish
 
 
 
@@ -231,6 +231,7 @@ class RetrievalModuleWithQueue(BaseModule):
         self.text_encoder, text_width = self.create_text_encoder(text_encoder_config)
         self.vision_proj = nn.Linear(vision_width, hidden_size)
         self.text_proj = nn.Linear(text_width, hidden_size)
+        self.swish = Swish(config['beta'])
 
         aformer_config = BertConfig.from_json_file(config['aformer_config_path'])
         aformer_config.num_hidden_layers = config['num_top_layer']
@@ -263,19 +264,22 @@ class RetrievalModuleWithQueue(BaseModule):
         input_ids = text_encoding['input_ids'].to(self.device)
         attention_mask = text_encoding['attention_mask'].to(self.device)
 
-        text_frozen_embeds = self.text_encoder(input_ids,
+        pretrained_output = self.text_encoder(input_ids,
                                                attention_mask=attention_mask,
                                                return_dict=True)
-        text_frozen_embeds = F.normalize(self.text_proj(text_frozen_embeds.last_hidden_state), dim=-1)
+        # pretrained_feats = self.swish(self.text_proj(pretrained_output.pooler_output))
+        # pretrained_embeds = self.swish(self.text_proj(pretrained_output.last_hidden_state))
+        pretrained_feats = self.text_proj(pretrained_output.pooler_output)
+        pretrained_embeds = self.text_proj(pretrained_output.last_hidden_state)
 
         # 通过 AFormer 输出特征向量
         text_outputs = self.aformer(
-            text_frozen_embeds,
+            pretrained_embeds,
             attention_mask=attention_mask,
             mode='text'
         )
-        text_feats = text_outputs.pooler_output
-        text_embeds = text_outputs.last_hidden_state
+        text_feats = torch.stack([text_outputs.pooler_output, pretrained_feats], dim=0).mean(dim=0)
+        text_embeds = torch.stack([text_outputs.last_hidden_state, pretrained_embeds], dim=0).mean(dim=0)
         return [text_feats, text_embeds, attention_mask]
 
     def encoding_image(self, batch):
