@@ -1,20 +1,20 @@
 # 常规设置
 datasets: ['coco']
-#data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
-#output_dir: "../outputs"
-#log_dir: "../logs"
+data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
+output_dir: "../outputs"
+log_dir: "../logs"
 
 # set pretrained as a file path or an url
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
 
 #datasets: ['coco']
-data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
-output_dir: "/root/autodl-tmp/outputs"
-log_dir: "/root/tf-logs"
+#data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
+#output_dir: "/root/autodl-tmp/outputs"
+#log_dir: "/root/tf-logs"
 
 pretrained: ''
 arch: 'Aformer_SwiGLU_queue'
-desc: '测试部分冻结预训练模型，解冻视觉模型'
+desc: '测试部分冻结预训练模型，解冻视觉模型（修复学习率错误）'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -52,8 +52,8 @@ warmup_steps: 0.15
 image_encoder_config:
   vit_name: 'ViT-B-32'
 #  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
-#  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
-  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
+#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
 
   image_size: 224 # 调整后的图片像素
   patch_size: 32 # 送入vit的图片块的像素
@@ -75,8 +75,8 @@ text_encoder_config:
 #  tokenizer: '/home/tzj/pretrained_models/xlm-roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
   tokenizer_name: 'roberta-base'
-  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
-#  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+#  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
+  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
 #  tokenizer_name: 'roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
 

@@ -12,7 +12,7 @@ from transformers import AutoTokenizer, AutoModel, AutoConfig, BertConfig
 from transformers import ViTImageProcessor, ViTModel
 from pathlib import Path
 from collections import defaultdict
-from torchinfo import summary
+# from torchinfo import summary
 from copy import deepcopy
 # from .bert_model import BertCrossLayer, BertAttention
 from .clip_model import build_model, adapt_position_encoding
@@ -560,16 +560,18 @@ class RetrievalModuleWithQueue(BaseModule):
                 "params": [
                     p
                     for n, p in self.named_parameters()
-                    if not any(nd in n for nd in ["temp", "text_encoder"])
+                    if not any(nd in n for nd in ["temp", "text_encoder", "visual_encoder"])
+                    # 除了temp、text_encoder、visual_encoder之外的参数，使用默认学习率
                 ]
             },
             {
                 "params": [
                     p
                     for n, p in self.named_parameters()
-                    if any(nd in n for nd in ["text_encoder"])
+                    if any(nd in n for nd in ["text_encoder", "visual_encoder"])
                 ],
                 "lr": opt_config['init_lr'] / 10,
+                # text_encoder和visual_encoder的参数，使用十分之一默认学习率
             },
             {
                 "params": [
@@ -609,8 +611,8 @@ class RetrievalModuleWithQueue(BaseModule):
 
         model.text_encoder = AutoModel.from_pretrained(config['text_encoder_config']['tokenizer'])
         print('### load model from pretrained! ###')
-        model.freeze_text_encoder(model.text_encoder, last_layer=4)
-        model.freeze_image_encoder(model.visual_encoder, last_layer=4)
+        model.freeze_text_encoder(model.text_encoder, last_layer=0)
+        # model.freeze_image_encoder(model.visual_encoder, last_layer=0)
         # model.freeze_module(model.text_encoder)
         # model.freeze_module(model.visual_encoder)
         # print('### freeze text encoder.')
