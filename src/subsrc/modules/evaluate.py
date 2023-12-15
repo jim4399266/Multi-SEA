@@ -47,7 +47,7 @@ def val_irtr_recall_sort(pl_module, vectors):
     config = pl_module.hparams.config
     device = text_feats_all.device
     # 粗排，筛选 top_k 个候选集
-    sims_matrix = image_feats_all @ text_feats_all.t()
+    sims_matrix = image_feats_all @ text_feats_all.t() #TODO  待测试添加temp
     score_matrix_i2t = torch.full((len(image_feats_all), len(text_feats_all)), -100.).to(device)
 
     num_devices = pl_module.trainer.world_size
@@ -71,7 +71,7 @@ def val_irtr_recall_sort(pl_module, vectors):
         score_i2t = pl_module.itm_head(image2text_output.last_hidden_state[:, 0])
         score_i2t = score_i2t[:, 1]
         # score_i2t = pl_module.itm_head(image2text_output.last_hidden_state[:, 0])[:, 1]
-        score_matrix_i2t[start + i, topk_idx] = score_i2t + topk_sim #TODO  topk_sim 远大于 score_t2i
+        score_matrix_i2t[start + i, topk_idx] = score_i2t + topk_sim
 
     # 精排，文本检索图片
     sims_matrix = sims_matrix.t()
@@ -96,7 +96,7 @@ def val_irtr_recall_sort(pl_module, vectors):
             mode='t2i'
         )
         score_t2i = pl_module.itm_head(text2image_output.last_hidden_state[:, 0])[:, 1]
-        score_matrix_t2i[start + i, topk_idx] = score_t2i + topk_sim  #TODO  topk_sim 远大于 score_t2i
+        score_matrix_t2i[start + i, topk_idx] = score_t2i + topk_sim
 
 
     # 多卡情况下，同步进度

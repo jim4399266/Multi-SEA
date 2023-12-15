@@ -59,9 +59,9 @@ class RMSNorm(torch.nn.Module):
 
 
 class Pooler(nn.Module):
-    def __init__(self, config):
+    def __init__(self, hidden_size):
         super().__init__()
-        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+        self.dense = nn.Linear(hidden_size, hidden_size)
         self.activation = nn.Tanh()
 
     def forward(self, hidden_states):
@@ -485,7 +485,7 @@ class AFormer(BertPreTrainedModel):
         super().__init__(config)
         self.config = config
         self.encoder = AFormerEncoder(config)
-        self.pooler = Pooler(config)
+        self.pooler = Pooler(config.hidden_size)
         self.init_weights()
 
     def forward(self,

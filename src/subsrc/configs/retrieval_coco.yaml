@@ -13,8 +13,8 @@ log_dir: "../logs"
 #log_dir: "/root/tf-logs"
 
 pretrained: ''
-arch: 'Aformer_SwiGLU_queue'
-desc: '测试部分冻结预训练模型，解冻视觉模型（修复学习率错误）'
+arch: 'Aformer_SwiGLU_queue_new'
+desc: '将预训练模型与AFormer输出按照alpha（可训练）结合，解冻语言编码器'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -37,8 +37,8 @@ fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 check_val_every_n_epoch: 5 # 每几个epoch验证一次
 accelerator: 'gpu'
 devices: [0,1]
-batch_size: 512  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 32  # you should define this manually with per_gpu_batch_size=#
+batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
+per_gpu_batch_size: 50  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8

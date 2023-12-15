@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from .model_retrieval import RetrievalModuleWithQueue
+from .model_retrieval import RetrievalModuleWithQueue,RetrievalModuleWithQueue_1
 
 _models = {
     # "f30k": F30KCaptionKarpathyDataModule,
@@ -8,6 +8,7 @@ _models = {
     # "aformer":RetrievalModule,
     "aformer_queue":RetrievalModuleWithQueue,
     "aformer_swiglu_queue":RetrievalModuleWithQueue,
+    "aformer_swiglu_queue_new":RetrievalModuleWithQueue_1,
     # "aformer": RetrievalMomentumModule
 }
 
