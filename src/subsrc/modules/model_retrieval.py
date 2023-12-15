@@ -223,6 +223,7 @@ class RetrievalModuleWithQueue(BaseModule):
 
         self.distill = config['distill']
         self.temp = nn.Parameter(1.0 * torch.ones([]))
+        self.alpha = 0.8
         self.queue_size = config['queue_size']
         self.negative_all_rank = config['negative_all_rank']
 
@@ -606,8 +607,6 @@ class RetrievalModuleWithQueue(BaseModule):
     @classmethod
     def from_pretrained(cls, config):
         model = cls(config)
-        # summary(model.visual_encoder, input_size=(1,3,224,224), depth=4)
-
         model.text_encoder = AutoModel.from_pretrained(config['text_encoder_config']['tokenizer'])
         print('### load model from pretrained! ###')
         # model.freeze_text_encoder(model.text_encoder, last_layer=0)
