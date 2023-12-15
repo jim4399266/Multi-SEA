@@ -217,8 +217,9 @@ def train_irtr_with_queue(pl_module, batch):
     '''
     with torch.no_grad():
         pl_module.temp.clamp_(0.1, 3.0)
-    alpha = pl_module.hparams.config['cur_alpha']
+        pl_module.alpha.clamp_(0.2, 0.8)
 
+    cur_alpha = pl_module.hparams.config['cur_alpha']
     # 获得预训练模型输出的特征
     idx = batch['image_index'].view(-1, 1)
     idx_all = torch.cat([idx.t(), pl_module.idx_queue.clone().detach()], dim=1)
@@ -245,8 +246,8 @@ def train_irtr_with_queue(pl_module, batch):
         # sim_i2t_q = image_feats @ text_feat_all
         # sim_t2i_q = text_feats @ image_feat_all
 
-        sim_i2t_targets = alpha * F.softmax(sim_i2t_q, dim=1) + (1 - alpha) * sim_targets
-        sim_t2i_targets = alpha * F.softmax(sim_t2i_q, dim=1) + (1 - alpha) * sim_targets
+        sim_i2t_targets = cur_alpha * F.softmax(sim_i2t_q, dim=1) + (1 - cur_alpha) * sim_targets
+        sim_t2i_targets = cur_alpha * F.softmax(sim_t2i_q, dim=1) + (1 - cur_alpha) * sim_targets
 
         loss_i2t = -torch.sum(F.log_softmax(sim_i2t, dim=1) * sim_i2t_targets, dim=1).mean()
         loss_t2i = -torch.sum(F.log_softmax(sim_t2i, dim=1) * sim_t2i_targets, dim=1).mean()

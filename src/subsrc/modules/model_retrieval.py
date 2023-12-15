@@ -610,8 +610,8 @@ class RetrievalModuleWithQueue(BaseModule):
 
         model.text_encoder = AutoModel.from_pretrained(config['text_encoder_config']['tokenizer'])
         print('### load model from pretrained! ###')
-        model.freeze_text_encoder(model.text_encoder, last_layer=0)
-        # model.freeze_image_encoder(model.visual_encoder, last_layer=0)
+        # model.freeze_text_encoder(model.text_encoder, last_layer=0)
+        model.freeze_image_encoder(model.visual_encoder, last_layer=4)
         # model.freeze_module(model.text_encoder)
         # model.freeze_module(model.visual_encoder)
         # print('### freeze text encoder.')
@@ -672,7 +672,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
 
         self.distill = config['distill']
         self.temp = nn.Parameter(1.0 * torch.ones([]))
-        self.alpha = 0.5
+        self.alpha = nn.Parameter(0.7 * torch.ones([]))
         self.queue_size = config['queue_size']
         self.negative_all_rank = config['negative_all_rank']
 
@@ -1023,16 +1023,26 @@ class RetrievalModuleWithQueue_1(BaseModule):
                 "params": [
                     p
                     for n, p in self.named_parameters()
-                    if not any(nd in n for nd in ["temp", "text_encoder"])
+                    if not any(nd in n for nd in ["alpha", "temp", "text_encoder", "visual_encoder"])
+                    # 除了alpha、temp、text_encoder、visual_encoder之外的参数，使用默认学习率
                 ]
             },
             {
                 "params": [
                     p
                     for n, p in self.named_parameters()
-                    if any(nd in n for nd in ["text_encoder"])
+                    if any(nd in n for nd in ["text_encoder", "visual_encoder"])
                 ],
                 "lr": opt_config['init_lr'] / 10,
+                # text_encoder和visual_encoder的参数，使用十分之一默认学习率
+            },
+            {
+                "params": [
+                    p
+                    for n, p in self.named_parameters()
+                    if any(nd in n for nd in ["alpha"])
+                ],
+                "lr": 1e-4,
             },
             {
                 "params": [
