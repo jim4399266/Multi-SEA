@@ -1020,6 +1020,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
         max_steps, warmup_steps = self.cal_steps()
         optimizer_grouped_parameters = [
             {
+                "name": 'default',
                 "params": [
                     p
                     for n, p in self.named_parameters()
@@ -1028,6 +1029,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
                 ]
             },
             {
+                "name": 'encoder',
                 "params": [
                     p
                     for n, p in self.named_parameters()
@@ -1037,6 +1039,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
                 # text_encoder和visual_encoder的参数，使用十分之一默认学习率
             },
             {
+                "name": 'alpha',
                 "params": [
                     p
                     for n, p in self.named_parameters()
@@ -1045,6 +1048,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
                 "lr": 1e-4,
             },
             {
+                "name": 'temp',
                 "params": [
                     p
                     for n, p in self.named_parameters()
@@ -1082,7 +1086,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
 
         model.text_encoder = AutoModel.from_pretrained(config['text_encoder_config']['tokenizer'])
         print('### load model from pretrained! ###')
-        model.freeze_text_encoder(model.text_encoder, last_layer=0)
+        # model.freeze_text_encoder(model.text_encoder, last_layer=0)
         model.freeze_image_encoder(model.visual_encoder, last_layer=0)
         # model.freeze_module(model.text_encoder)
         # model.freeze_module(model.visual_encoder)

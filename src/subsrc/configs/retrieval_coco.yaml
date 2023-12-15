@@ -14,7 +14,7 @@ log_dir: "../logs"
 
 pretrained: ''
 arch: 'Aformer_SwiGLU_queue_new'
-desc: '修改图文编码流程，将预训练模型与AFormer输出结合'
+desc: '将预训练模型与AFormer输出按照alpha（可训练）结合，解冻语言编码器'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
