@@ -13,7 +13,7 @@ log_dir: "../logs"
 #log_dir: "/root/tf-logs"
 
 pretrained: ''
-arch: 'Aformer_SwiGLU_queue_new'
+arch: 'Aformer_SwiGLU_queue'
 desc: '将预训练模型与AFormer输出按照alpha（可训练）结合，解冻语言编码器'
 seed: 42
 train_dataset_len: -1
