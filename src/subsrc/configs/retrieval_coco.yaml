@@ -44,7 +44,7 @@ pin_memory: True
 num_workers: 8
 precision: 32
 max_grad_norm: 1.
-max_epoch: 100
+max_epoch: 150
 max_steps: -1
 warmup_steps: 0.15
 

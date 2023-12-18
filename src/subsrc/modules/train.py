@@ -381,7 +381,7 @@ def train_irtr_with_queue(pl_module, batch):
     # pl_module.log(f"train_irtr_loss/irtr/triplet_loss", loss_triplet)
     pl_module.log(f"train/total_loss", irtr_loss)
     pl_module.log(f"train/temp", pl_module.temp)
-    pl_module.log(f"train/alpha", pl_module.alpha)
+#    pl_module.log(f"train/alpha", pl_module.alpha)
 
 
 
