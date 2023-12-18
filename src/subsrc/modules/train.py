@@ -217,7 +217,7 @@ def train_irtr_with_queue(pl_module, batch):
     '''
     with torch.no_grad():
         pl_module.temp.clamp_(0.1, 3.0)
-        pl_module.alpha.clamp_(0.2, 0.8)
+        # pl_module.alpha.clamp_(0.2, 0.8)
 
     cur_alpha = pl_module.hparams.config['cur_alpha']
     # 获得预训练模型输出的特征
