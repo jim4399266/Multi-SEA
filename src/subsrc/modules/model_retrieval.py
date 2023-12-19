@@ -849,6 +849,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
             # 将vectors的list转换为tensor，张量转移到cpu上，防止显存溢出
             # text_embeds_all, text_feats_all, text_atts_all, image_embeds_all, image_feats_all, image_atts_all
             vectors = list(zip(*step_outputs))
+
             if self.hparams.config['image_encoder_config']['image_size'] == 384 \
                     and self.hparams.config['image_encoder_config']['patch_size'] == 16:
                 step_outputs.clear()
@@ -861,6 +862,8 @@ class RetrievalModuleWithQueue_1(BaseModule):
                     torch.cuda.empty_cache()
             else:
                vectors = [torch.cat(vec, dim=0) for vec in vectors]
+               step_outputs.clear()
+               torch.cuda.empty_cache()
 
             # 进行相似度得分的计算
             if '1k' in self.hparams.config['coco_scale']:
@@ -1080,12 +1083,10 @@ class RetrievalModuleWithQueue_1(BaseModule):
     @classmethod
     def from_pretrained(cls, config):
         model = cls(config)
-        # summary(model.visual_encoder, input_size=(1,3,224,224), depth=4)
-
         model.text_encoder = AutoModel.from_pretrained(config['text_encoder_config']['tokenizer'])
         print('### load model from pretrained! ###')
         # model.freeze_text_encoder(model.text_encoder, last_layer=0)
-        model.freeze_image_encoder(model.visual_encoder, last_layer=0)
+        model.freeze_image_encoder(model.visual_encoder, last_layer=4)
         # model.freeze_module(model.text_encoder)
         # model.freeze_module(model.visual_encoder)
         # print('### freeze text encoder.')

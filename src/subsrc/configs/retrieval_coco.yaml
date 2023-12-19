@@ -13,8 +13,8 @@ log_dir: "../logs"
 #log_dir: "/root/tf-logs"
 
 pretrained: ''
-arch: 'Aformer_SwiGLU_queue'
-desc: '解冻语言编码器和视觉编码器后4层，150epoch'
+arch: 'Aformer_SwiGLU_queue_new'
+desc: '解冻语言编码器和视觉编码器后4层，编码综合预训练模型和AFormer（1024），VIT-B/16，'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -34,29 +34,28 @@ coco_scale: ['5k'] #测试集使用1k，5k还是都用
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
 fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 # val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
-check_val_every_n_epoch: 10 # 每几个epoch验证一次
+check_val_every_n_epoch: 5 # 每几个epoch验证一次
 accelerator: 'gpu'
-devices: [0,1]
-batch_size: 512  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 32  # you should define this manually with per_gpu_batch_size=#
+devices: [0,1,2]
+batch_size: 480  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
+per_gpu_batch_size: 12  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8
 precision: 32
 max_grad_norm: 1.
-max_epoch: 150
+max_epoch: 100
 max_steps: -1
 warmup_steps: 0.15
 
 # ----------------------  Image Setting  ----------------------
 image_encoder_config:
-  vit_name: 'ViT-B-32'
+  vit_name: 'ViT-B-16'
 #  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
-  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
-#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
-
+  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
-  patch_size: 32 # 送入vit的图片块的像素
+  patch_size: 16 # 送入vit的图片块的像素
   # 预处理图片的模型（将图片处理为image_size * image_size）
 #  train_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
 #  val_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
@@ -87,10 +86,10 @@ text_encoder_config:
 # ----------------------  Transformer Setting  ----------------------
 aformer_config_path: 'subsrc/configs/aformer_config.json'
 num_top_layer: 6  # 融合模块的层数
-hidden_size: 768
+hidden_size: 1024
 attention_groups: False
 beta: 1.0
-num_heads: 12 # 注意力的head数量
+num_heads: 16 # 注意力的head数量
 ## mlp_ratio = 1 # 中间层的维度：hidden_size * mlp_ratio
 mlp_ratio: 4 # 中间层的维度：hidden_size * mlp_ratio
 drop_rate: 0.1 # dropout
