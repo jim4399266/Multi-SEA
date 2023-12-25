@@ -155,7 +155,8 @@ def main(args, config):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco_baseline.yaml')
-    parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
+    # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
+    parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
     parser.add_argument('--devices', default='')
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--test_only', action='store_true')
@@ -171,7 +172,7 @@ if __name__ == '__main__':
         config['test_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['batch_size'] = config['per_gpu_batch_size']
         config['check_val_every_n_epoch'] = 1
-        # config['fast_dev_run'] = 5
+        config['fast_dev_run'] = 5
         config['shuffle'] = False
         config['num_workers'] = 0
         # config['max_epoch'] = 3

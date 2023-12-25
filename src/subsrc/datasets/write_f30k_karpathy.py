@@ -67,6 +67,5 @@ def make_arrow(root, dataset_root):
                 writer.write_table(table)
 
 if __name__ == '__main__':
-
-    # make_arrow(root, arrows_root)
-    pass
+    make_arrow("/home/tzj/datas/flickr30k", "/home/tzj/datas/flickr30k_karpathy_prepared")
+    # pass
