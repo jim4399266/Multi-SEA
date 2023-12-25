@@ -132,7 +132,12 @@ def main(args, config):
     )
 
     if args.test_only:
-        trainer.test(model, datamodule=dm)
+        weight_paths = list(sorted(Path(config['test_checkpoints_dir']).rglob('*.[pc][tk][hp]*')))
+        for ckpt in weight_paths:
+            print('---------------------------------------------')
+            print(weight_paths)
+            trainer.test(model, datamodule=dm, ckpt_path=str(ckpt))
+
     elif args.evaluate:
         trainer.validate(model, datamodule=dm)
     else:

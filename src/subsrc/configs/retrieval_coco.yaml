@@ -11,8 +11,8 @@ log_dir: "../logs"
 #data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
 #output_dir: "/root/autodl-tmp/outputs"
 #log_dir: "/root/tf-logs"
-
-pretrained: ''
+test_checkpoints_dir: "/home/tzj/codes/my_retrieval_model/outputs/irtr_Aformer_SwiGLU_queue_new_Asize768_beta1.0_bs512_pbs16_queue_size500_topk64_epoch100_lr1e-05_layer6_from_ViT-B-16_224_roberta-base/version_2"
+checkpoint: ''
 arch: 'Aformer_SwiGLU_queue_new'
 desc: '解冻语言编码器和视觉编码器后4层，编码综合预训练模型和AFormer（1024），VIT-B/16，'
 seed: 42
@@ -28,7 +28,7 @@ distill: False
 momentum: 0.995
 alpha: 0.4
 negative_all_rank: True
-coco_scale: ['5k'] #测试集使用1k，5k还是都用
+coco_scale: ['1k'] #测试集使用1k，5k还是都用
 
 # ----------------------  Lightning Trainer Setting  ------------------------------
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
@@ -86,10 +86,10 @@ text_encoder_config:
 # ----------------------  Transformer Setting  ----------------------
 aformer_config_path: 'subsrc/configs/aformer_config.json'
 num_top_layer: 6  # 融合模块的层数
-hidden_size: 1024
+hidden_size: 768
 attention_groups: False
 beta: 1.0
-num_heads: 16 # 注意力的head数量
+num_heads: 12 # 注意力的head数量
 ## mlp_ratio = 1 # 中间层的维度：hidden_size * mlp_ratio
 mlp_ratio: 4 # 中间层的维度：hidden_size * mlp_ratio
 drop_rate: 0.1 # dropout

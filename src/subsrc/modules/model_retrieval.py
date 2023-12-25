@@ -1097,14 +1097,12 @@ class RetrievalModuleWithQueue_1(BaseModule):
         return model
 
     @classmethod
-    def from_checkpoint(cls, config):
+    def from_checkpoint(cls, config, strict=True):
         model = cls(config)
-        # state_dict = load_checkpoint(model, config['pretrained'])
-        # msg = model.load_state_dict(state_dict, strict=False)
-        # print("missing keys:")
-        # print(msg.missing_keys)
-        # model.copy_params()
-        # model.set_queue()
+        state_dict = model.get_state_dict(config['pretrained'])
+        msg = model.load_state_dict(state_dict, strict=strict)
+        print("missing keys:")
+        print(msg.missing_keys)
         return model
 
     @torch.no_grad()

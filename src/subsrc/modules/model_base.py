@@ -2,14 +2,12 @@
 BaseModel: 提供模型需要的一些基础方法
 '''
 import torch
-import torch.distributed as dist
-import torch.nn.functional as F
-from torch import nn
 import pytorch_lightning as pl
+import os
+from collections import OrderedDict
 import re
 from pathlib import Path
 from typing import Any, Optional, List, Dict
-from transformers import RobertaConfig, RobertaModel
 from transformers import (
     get_linear_schedule_with_warmup,
     get_cosine_schedule_with_warmup,
@@ -52,6 +50,28 @@ class BaseModule(pl.LightningModule):
     @classmethod
     def from_checkpoint(cls, config):
         raise NotImplementedError("load from personal checkpoint")
+
+    def get_state_dict(self, checkpoint_path, use_ema=False):
+        if checkpoint_path and os.path.isfile(checkpoint_path):
+            checkpoint = torch.load(checkpoint_path, map_location='cpu')
+            state_dict_key = 'state_dict'
+            if isinstance(checkpoint, dict):
+                if use_ema and 'state_dict_ema' in checkpoint:
+                    state_dict_key = 'state_dict_ema'
+            if state_dict_key and state_dict_key in checkpoint:
+                new_state_dict = OrderedDict()
+                for k, v in checkpoint[state_dict_key].items():
+                    # strip `module.` prefix
+                    name = k[7:] if k.startswith('module') else k
+                    new_state_dict[name] = v
+                state_dict = new_state_dict
+            else:
+                state_dict = checkpoint
+            print("Loaded {} from checkpoint '{}'".format(state_dict_key, checkpoint_path))
+            return state_dict
+        else:
+            print("No checkpoint found at '{}'".format(checkpoint_path))
+            raise FileNotFoundError()
 
     def freeze_module(self, module):
         """
