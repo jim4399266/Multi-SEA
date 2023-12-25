@@ -790,8 +790,9 @@ class RetrievalModuleWithQueue_1(BaseModule):
         image_feats, image_embeds, image_atts = self.encoding_image(batch)
         text_feats, text_embeds, text_atts = self.encoding_text(batch)
 
-        if self.hparams.config['image_encoder_config']['image_size'] == 384 \
-                and self.hparams.config['image_encoder_config']['patch_size'] == 16:
+        if (self.hparams.config['image_encoder_config']['image_size'] == 384
+            and self.hparams.config['image_encoder_config']['patch_size'] == 16)\
+                or self.hparams.config['hidden_size'] == 1024:
             # 张量维度太高，先放入cpu
             self.validation_step_outputs.append([text_embeds.cpu(), text_feats.cpu(), text_atts.cpu(),
                                              image_embeds.cpu(), image_feats.cpu(), image_atts.cpu()])
@@ -810,8 +811,9 @@ class RetrievalModuleWithQueue_1(BaseModule):
         image_feats, image_embeds, image_atts = self.encoding_image(batch)
         text_feats, text_embeds, text_atts = self.encoding_text(batch)
 
-        if self.hparams.config['image_encoder_config']['image_size'] == 384 \
-                and self.hparams.config['image_encoder_config']['patch_size'] == 16:
+        if (self.hparams.config['image_encoder_config']['image_size'] == 384
+            and self.hparams.config['image_encoder_config']['patch_size'] == 16) \
+                or self.hparams.config['hidden_size'] == 1024:
             # 张量维度太高，先放入cpu
             self.test_step_outputs.append([text_embeds.cpu(), text_feats.cpu(), text_atts.cpu(),
                                              image_embeds.cpu(), image_feats.cpu(), image_atts.cpu()])
@@ -850,8 +852,9 @@ class RetrievalModuleWithQueue_1(BaseModule):
             # text_embeds_all, text_feats_all, text_atts_all, image_embeds_all, image_feats_all, image_atts_all
             vectors = list(zip(*step_outputs))
 
-            if self.hparams.config['image_encoder_config']['image_size'] == 384 \
-                    and self.hparams.config['image_encoder_config']['patch_size'] == 16:
+            if (self.hparams.config['image_encoder_config']['image_size'] == 384
+                and self.hparams.config['image_encoder_config']['patch_size'] == 16) \
+                    or self.hparams.config['hidden_size'] == 1024:
                 step_outputs.clear()
                 torch.cuda.empty_cache()
                 for i in range(len(vectors)):
