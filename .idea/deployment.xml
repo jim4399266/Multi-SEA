@@ -34,6 +34,8 @@
         <serverdata>
           <mappings>
             <mapping deploy="/codes/my_retrieval_model" local="$PROJECT_DIR$" web="/" />
+            <mapping local="" />
+            <mapping local="" />
           </mappings>
         </serverdata>
       </paths>

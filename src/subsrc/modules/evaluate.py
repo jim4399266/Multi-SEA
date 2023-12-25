@@ -47,7 +47,7 @@ def val_irtr_recall_sort(pl_module, vectors):
     config = pl_module.hparams.config
     device = text_feats_all.device
     # 粗排，筛选 top_k 个候选集
-    sims_matrix = image_feats_all @ text_feats_all.t() #TODO  待测试添加temp
+    sims_matrix = image_feats_all @ text_feats_all.t() / pl_module.temp
     score_matrix_i2t = torch.full((len(image_feats_all), len(text_feats_all)), -100.).to(device)
 
     num_devices = pl_module.trainer.world_size

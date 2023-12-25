@@ -44,22 +44,29 @@ def main(args, config):
         'layer': config['num_top_layer'],
         'from_': '',
     }
+    prefix_dict.update(
+        {'from_': f'{config["image_encoder_config"]["vit_name"]}_'
+                  f'{config["image_encoder_config"]["image_size"]}_'
+                  f'{config["text_encoder_config"]["tokenizer_name"]}'}
+    )
+    log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch') else f'{v}'
+                         for k, v in prefix_dict.items()])
     if config['attention_groups']:
         prefix_dict.update({'arch': f'{config["arch"]}_GQA_{config["attention_groups"]}'})
-    if config['pretrained'] == "":
-        prefix_dict.update(
-            {'from_': f'{config["image_encoder_config"]["vit_name"]}_'
-                      f'{config["image_encoder_config"]["image_size"]}_'
-                      f'{config["text_encoder_config"]["tokenizer_name"]}'}
-        )
-        log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch') else f'{v}'
-                             for k, v in prefix_dict.items()])
-    else:
-        prefix_dict.update(
-            {'from_': f'{config["pretrained"].split("/")[-1].split(".")[0]}'}
-        )
-        log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch') else f'{v}'
-                             for k, v in prefix_dict.items()])
+    # if config['pretrained'] == "":
+    #     prefix_dict.update(
+    #         {'from_': f'{config["image_encoder_config"]["vit_name"]}_'
+    #                   f'{config["image_encoder_config"]["image_size"]}_'
+    #                   f'{config["text_encoder_config"]["tokenizer_name"]}'}
+    #     )
+    #     log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch') else f'{v}'
+    #                          for k, v in prefix_dict.items()])
+    # else:
+    #     prefix_dict.update(
+    #         {'from_': f'{config["pretrained"].split("/")[-1].split(".")[0]}'}
+    #     )
+    #     log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch') else f'{v}'
+    #                          for k, v in prefix_dict.items()])
 
     output_dir = config['output_dir']
     if output_dir != None or "" or '':
@@ -82,7 +89,7 @@ def main(args, config):
         mode='max',
         save_last=False,
         verbose=True,
-        save_weights_only=True,
+        save_weights_only=False,
     )
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='step')
     callbacks = [modelsummary_callback, checkpoint_callback, lr_callback]
@@ -159,7 +166,7 @@ if __name__ == '__main__':
         config['test_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['batch_size'] = config['per_gpu_batch_size']
         config['check_val_every_n_epoch'] = 1
-        config['fast_dev_run'] = 5
+        # config['fast_dev_run'] = 5
         config['shuffle'] = False
         config['num_workers'] = 0
         # config['max_epoch'] = 3
