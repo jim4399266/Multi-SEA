@@ -3,10 +3,11 @@ from typing import List, Union
 
 # from .f30k_caption_karpathy_datamodule import F30KCaptionKarpathyDataModule
 from .coco_karpathy_datamodule import CocoKarpathyDataModule
+from .flickr30k_karpathy_datamodule import Flickr30kKarpathyDataModule
 
 
 _datamodules = {
-    # "f30k": F30KCaptionKarpathyDataModule,
+    "flickr30k": Flickr30kKarpathyDataModule,
     "coco": CocoKarpathyDataModule,
 }
 

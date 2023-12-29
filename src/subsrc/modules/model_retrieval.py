@@ -908,15 +908,15 @@ class RetrievalModuleWithQueue_1(BaseModule):
                 for k, v in val_result.items():
                     self.logger.experiment.add_scalar(f"{phase}_{dataset}5k/{k}", np.mean(v), cur_step)
                 print(val_result)
-            # if self.hparams.config['coco_scale'] == '':
-            #     # 使用flick30k
-            #     score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, vectors)
-            #     val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i, data_loader.dataset.index_mapper)
-            #     for item in ['txt_r1', 'txt_r5', 'txt_r10', 'txt_r_mean', 'img_r1', 'img_r5', 'img_r10', 'img_r_mean',
-            #                  'r_mean']:
-            #         self.logger.experiment.add_scalar(f"{phase}_{dataset}/{item}", val_result[item], cur_step)
-            # 计算最终检索得分
+            if self.hparams.config['coco_scale'] == ['']:
+                # 使用flick30k
+                score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, vectors)
+                val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i, index_mapper)
+                for k, v in val_result.items():
+                    self.logger.experiment.add_scalar(f"{phase}_{dataset}1k/{k}", np.mean(v), cur_step)
+                print(val_result)
 
+            # 计算最终检索得分
             print(f'global_step: {cur_step}')
             the_metric += (val_result['r_sum'])
             self.logger.experiment.add_scalar(
@@ -1098,14 +1098,12 @@ class RetrievalModuleWithQueue_1(BaseModule):
         return model
 
     @classmethod
-    def from_checkpoint(cls, config):
+    def from_checkpoint(cls, config, strict=True):
         model = cls(config)
-        # state_dict = load_checkpoint(model, config['pretrained'])
-        # msg = model.load_state_dict(state_dict, strict=False)
-        # print("missing keys:")
-        # print(msg.missing_keys)
-        # model.copy_params()
-        # model.set_queue()
+        state_dict = model.get_state_dict(config['pretrained'])
+        msg = model.load_state_dict(state_dict, strict=strict)
+        print("missing keys:")
+        print(msg.missing_keys)
         return model
 
     @torch.no_grad()

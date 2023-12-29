@@ -30,7 +30,7 @@ def main(args, config):
 
     log_dir = config['log_dir']
     prefix_dict = {
-        'task': '-'.join((list(config['task_name'].keys()))),
+        'dataset': '-'.join((config['datasets'])),
         'arch': config['arch'],
         'Asize': config['hidden_size'],
         # 'heads': config['num_heads'],
@@ -49,7 +49,7 @@ def main(args, config):
                   f'{config["image_encoder_config"]["image_size"]}_'
                   f'{config["text_encoder_config"]["tokenizer_name"]}'}
     )
-    log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch') else f'{v}'
+    log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch' and k!= 'dataset') else f'{v}'
                          for k, v in prefix_dict.items()])
     if config['attention_groups']:
         prefix_dict.update({'arch': f'{config["arch"]}_GQA_{config["attention_groups"]}'})
@@ -132,7 +132,12 @@ def main(args, config):
     )
 
     if args.test_only:
-        trainer.test(model, datamodule=dm)
+        weight_paths = list(sorted(Path(config['test_checkpoints_dir']).rglob('*.[pc][tk][hp]*')))
+        for ckpt in weight_paths:
+            print('---------------------------------------------')
+            print(weight_paths)
+            trainer.test(model, datamodule=dm, ckpt_path=str(ckpt))
+
     elif args.evaluate:
         trainer.validate(model, datamodule=dm)
     else:
@@ -150,7 +155,8 @@ def main(args, config):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco_baseline.yaml')
-    parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
+    # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
+    parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
     parser.add_argument('--devices', default='')
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--test_only', action='store_true')
@@ -166,7 +172,7 @@ if __name__ == '__main__':
         config['test_dataset_len'] = int(10 * config['per_gpu_batch_size'])
         config['batch_size'] = config['per_gpu_batch_size']
         config['check_val_every_n_epoch'] = 1
-        # config['fast_dev_run'] = 5
+        config['fast_dev_run'] = 5
         config['shuffle'] = False
         config['num_workers'] = 0
         # config['max_epoch'] = 3

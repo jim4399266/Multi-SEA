@@ -15,5 +15,8 @@ _models = {
 def build_model(config):
     print('### building model. ###')
     arch = config['arch'].lower()
-    return _models[arch].from_pretrained(config)
+    if config['checkpoint'] == "":
+        return _models[arch].from_pretrained(config)
+    else:
+        return _models[arch].from_checkpoint(config)
 

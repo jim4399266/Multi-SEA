@@ -9,6 +9,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="cad04_tzj@10.112.17.225:17877 base">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="cad04_tzj@10.112.17.225:17877 blip">
         <serverdata>
           <mappings>
