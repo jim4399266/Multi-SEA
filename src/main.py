@@ -30,7 +30,7 @@ def main(args, config):
 
     log_dir = config['log_dir']
     prefix_dict = {
-        'task': '-'.join((list(config['task_name'].keys()))),
+        'dataset': '-'.join((config['datasets'])),
         'arch': config['arch'],
         'Asize': config['hidden_size'],
         # 'heads': config['num_heads'],
@@ -49,7 +49,7 @@ def main(args, config):
                   f'{config["image_encoder_config"]["image_size"]}_'
                   f'{config["text_encoder_config"]["tokenizer_name"]}'}
     )
-    log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch') else f'{v}'
+    log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch' and k!= 'dataset') else f'{v}'
                          for k, v in prefix_dict.items()])
     if config['attention_groups']:
         prefix_dict.update({'arch': f'{config["arch"]}_GQA_{config["attention_groups"]}'})
