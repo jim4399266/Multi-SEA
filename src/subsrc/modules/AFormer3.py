@@ -11,7 +11,7 @@ from torch import Tensor, device, dtype, nn
 import math
 
 '''
-Norm后置测试
+多粒度attention
 '''
 class Swish(nn.Module):
     def __init__(self, beta: float=1.0):
@@ -335,7 +335,6 @@ class AFormerLayer(nn.Module):
         self.i_cross_attention = AFormerAttention(config, is_cross_attention=True)
         self.ffn = AFormerFeedForward(config)
 
-
     def forward(self,
                 hidden_states,
                 attention_mask=None,
@@ -454,7 +453,7 @@ class AFormerEncoder(nn.Module):
         if output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
 
-        # hidden_states = self.norm(hidden_states)  # TODO 是否需要这个norm
+        # hidden_states = self.norm(hidden_states)
 
         if not return_dict:
             return tuple(

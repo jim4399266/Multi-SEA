@@ -1,15 +1,14 @@
 from typing import List, Union
 
-from .model_retrieval import RetrievalModuleWithQueue,RetrievalModuleWithQueue_1
+from .model_retrieval import RetrievalModuleWithQueue,RetrievalModuleWithQueue_1, RetrievalModuleWithDoubleQueue
 
 _models = {
-    # "f30k": F30KCaptionKarpathyDataModule,
     # "baseline": RetrievalModule,
     # "aformer":RetrievalModule,
     "aformer_queue":RetrievalModuleWithQueue,
     "aformer_swiglu_queue":RetrievalModuleWithQueue,
+    "aformer_swiglu_double_queue_new":RetrievalModuleWithDoubleQueue,
     "aformer_swiglu_queue_new":RetrievalModuleWithQueue_1,
-    # "aformer": RetrievalMomentumModule
 }
 
 def build_model(config):

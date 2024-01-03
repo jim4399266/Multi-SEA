@@ -85,7 +85,7 @@ text_encoder_config:
 
 # ----------------------  Transformer Setting  ----------------------
 aformer_config_path: 'subsrc/configs/aformer_config.json'
-num_top_layer: 6  # 融合模块的层数
+num_top_layer: 4  # 融合模块的层数
 hidden_size: 768
 attention_groups: False
 beta: 1.0
