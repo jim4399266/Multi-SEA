@@ -334,8 +334,7 @@ class AFormerLayer(nn.Module):
         self.t_cross_attention = AFormerAttention(config, is_cross_attention=True)
         self.i_cross_attention = AFormerAttention(config, is_cross_attention=True)
         self.ffn = AFormerFeedForward(config)
-        # self.intermediate = BertIntermediate(config)
-        # self.output = BertOutput(config)
+
 
     def forward(self,
                 hidden_states,
@@ -388,6 +387,8 @@ class AFormerLayer(nn.Module):
             attention_output = cross_attention_outputs[0]
             # add cross attentions if we output attention weights
             outputs = outputs + cross_attention_outputs[1:-1]
+
+
         layer_output = apply_chunking_to_forward(
             self.feed_forward_chunk, self.chunk_size_feed_forward, self.seq_len_dim, attention_output
         )

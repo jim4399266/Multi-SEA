@@ -14,8 +14,8 @@ log_dir: "../logs_flickr30k"
 test_checkpoints_dir: ""
 checkpoint: ''
 arch: 'Aformer_SwiGLU_queue_new'
-desc: '解冻语言编码器和视觉编码器后4层，编码综合预训练模型和AFormer（768），VIT-B/16，seed:3407'
-seed: 3407
+desc: '解冻语言编码器和视觉编码器后4层，编码综合预训练模型和AFormer(768)，VIT-B/16，多层输出'
+seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
 test_dataset_len: -1
