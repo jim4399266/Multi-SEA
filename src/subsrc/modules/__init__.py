@@ -9,6 +9,7 @@ _models = {
     "aformer_swiglu_queue":RetrievalModuleWithQueue,
     "aformer_swiglu_double_queue_new":RetrievalModuleWithDoubleQueue,
     "aformer_swiglu_queue_new":RetrievalModuleWithQueue_1,
+    "aformer3_swiglu_queue_new":RetrievalModuleWithQueue_1,
 }
 
 def build_model(config):

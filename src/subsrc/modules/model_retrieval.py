@@ -24,6 +24,7 @@ from .model_base import BaseModule
 # from .AFormer import AFormer
 # from .AFormer1 import AFormer
 from .AFormer2 import AFormer, Pooler, Swish
+from .AFormer3 import AFormerWithAug
 
 
 
@@ -693,7 +694,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
         aformer_config.beta = config['beta']
         aformer_config.attention_probs_dropout_prob = config['drop_rate']
 
-        self.aformer = AFormer(aformer_config)
+        self.aformer = AFormerWithAug(aformer_config) #TODO 测试增强
 
         self.itm_head = nn.Linear(hidden_size, 2)
 

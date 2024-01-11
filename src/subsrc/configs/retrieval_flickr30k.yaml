@@ -13,8 +13,8 @@ log_dir: "../logs_flickr30k"
 #log_dir: "/root/tf-logs"
 test_checkpoints_dir: ""
 checkpoint: ''
-arch: 'Aformer_SwiGLU_queue_new'
-desc: '解冻语言编码器和视觉编码器后4层，编码综合预训练模型和AFormer(768)，VIT-B/16，多层输出'
+arch: 'Aformer3_SwiGLU_queue_new'
+desc: '解冻语言编码器和视觉编码器后4层，编码综合预训练模型和AFormer(768)，VIT-B/16，多层输出，增强自注意力'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
