@@ -759,7 +759,8 @@ class RetrievalModuleWithQueue_1(BaseModule):
         return [image_feats, image_embeds, image_atts]
 
     def forward(self, batch, phase):
-        return train.train_irtr_with_queue(self, batch)
+        # return train.train_irtr_with_queue(self, batch)
+        return train.train_irtr_with_queue_multi_out(self, batch)
 
     def training_step(self, batch, batch_idx):
         if self.trainer.current_epoch > 0:
