@@ -14,7 +14,7 @@ log_dir: "../logs_flickr30k"
 test_checkpoints_dir: ""
 checkpoint: ''
 arch: 'Aformer3_SwiGLU_queue_new'
-desc: '解冻语言编码器和视觉编码器后4层，编码综合预训练模型和AFormer(768)，VIT-B/16，多层输出，增强自注意力'
+desc: '测试AgentAttention，版本1'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -37,8 +37,8 @@ fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 check_val_every_n_epoch: 5 # 每几个epoch验证一次
 accelerator: 'gpu'
 devices: [0,1]
-batch_size: 512  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 16  # you should define this manually with per_gpu_batch_size=#
+batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
+per_gpu_batch_size: 50  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8
@@ -50,12 +50,12 @@ warmup_steps: 0.15
 
 # ----------------------  Image Setting  ----------------------
 image_encoder_config:
-  vit_name: 'ViT-B-16'
+  vit_name: 'ViT-B-32'
 #  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
-  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+  vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
 #  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
-  patch_size: 16 # 送入vit的图片块的像素
+  patch_size: 32 # 送入vit的图片块的像素
   # 预处理图片的模型（将图片处理为image_size * image_size）
 #  train_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
 #  val_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']

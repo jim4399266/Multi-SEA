@@ -145,7 +145,9 @@ class AgentAttention(nn.Module):
         self.scale = self.attention_head_size ** -0.5
         self.softmax = nn.Softmax(dim=-1)
         self.agent_num=50
-        self.pooler = nn.AdaptiveAvgPool1d(output_size=self.agent_num)
+        # self.sampler = F.interpolate(output_size=self.agent_num)
+        # self.pooler = nn.AdaptiveAvgPool1d(output_size=self.agent_num)
+        self.dwc = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=(3, 3), padding=1)
         # self.window = 14
 
     def transpose_for_scores(self, x):
@@ -166,18 +168,22 @@ class AgentAttention(nn.Module):
     ):
         '''
         :param hidden_states: [bs, seq_len, hidden_size]
-        :param attention_mask:  [bs, seq_len]
+        :param attention_mask:  [bs, 1, 1, seq_len]
         :param output_attentions:
         '''
-        agent_num = hidden_states.size(1) // 2
+        bs, seq_len, dim = hidden_states.size()
+        # agent_num = hidden_states.size(1) // 2
         ## query, key, value : [bs, heads, seq_len, head_dim]
         query_layer = self.transpose_for_scores(self.query(hidden_states))
         key_layer = self.transpose_for_scores(self.key(hidden_states))
         value_layer = self.transpose_for_scores(self.value(hidden_states))
 
         ## agent_tokens : [bs, heads, agent_num, head_dim]
-        agent_tokens = self.transpose_for_scores(self.pooler(query_layer))
-
+        # agent_tokens = self.transpose_for_scores(self.pooler(query_layer.transpose(1, 2).reshape(bs, seq_len, dim)))
+        ## TODO agent_tokens 的采样方法
+        q = query_layer.transpose(1, 2).reshape(bs, seq_len, dim)
+        agent_tokens = F.interpolate(q.unsqueeze(0), size=(self.agent_num, dim), mode='bilinear', align_corners=False).squeeze()
+        agent_tokens = self.transpose_for_scores(agent_tokens)
         ## Step 1, Agent Aggregation.  X = A @ K^T  @ V :
         # [bs, head_n, agent_n, head_dim]  @ [bs, head_n, head_dim, seq_len] @ [bs, head_n, seq_len, head_dim]  ----->
         # [bs, head_n, agent_n, head_dim]
@@ -186,7 +192,7 @@ class AgentAttention(nn.Module):
         position_bias = 0.
         agent_attn_score = (torch.matmul(agent_tokens * self.scale, key_layer.transpose(-2, -1))) + position_bias
         if attention_mask is not None:
-            # Apply the attention mask is (precomputed for all layers in BertModel forward() function)
+            # attention_mask : [bs, head_n, agent_n, seq_len]
             agent_attn_score = agent_attn_score + attention_mask
         agent_attn_probs = nn.Softmax(dim=-1)(agent_attn_score)
         agent_attn_probs_dropped = self.dropout(agent_attn_probs)
@@ -194,9 +200,130 @@ class AgentAttention(nn.Module):
 
         ## Step 2, Agent Broadcast.  Y = Q @ A^T :
         # [bs, head_n, seq_len, head_dim] @ [bs, head_n, head_dim, agent_n] ----> [bs, head_n, seq_len, agent_n]
+        agent_bias = 0.
+        q_attn_score = (torch.matmul(query_layer * self.scale, agent_tokens.transpose(-2, -1))) + agent_bias
+        if attention_mask is not None:
+            # attention_mask : [bs, head_n, seq_len, agent_n]
+            q_attn_score = q_attn_score + attention_mask.transpose(-1, -2)
+        q_attn_probs = nn.Softmax(dim=-1)(q_attn_score)
+        q_attn_probs_dropped = self.dropout(q_attn_probs)
 
         ## Step 3, Generalized Linear Attention.  Y @ X:
         # [bs, head_n, seq_len, agent_n] @ [bs, head_n, agent_n, head_dim] ----> [bs, head_n, seq_len, head_dim]
+        x = torch.matmul(q_attn_probs_dropped, agent_v).transpose(1, 2).reshape(bs, seq_len, dim)
+        v = value_layer.transpose(1, 2).reshape(bs, seq_len, dim)
+        # TODO dwc的卷积方法
+        x = x + self.dwc(v.unsqueeze(1)).squeeze()
+
+        return x
+
+
+class AgentAttention_1(nn.Module):
+    r""" Window based multi-head self attention (W-MSA) module with relative position bias.
+    It supports both of shifted and non-shifted window.
+
+    Args:
+        dim (int): Number of input channels.
+        num_heads (int): Number of attention heads.
+        qkv_bias (bool, optional):  If True, add a learnable bias to query, key, value. Default: True
+        qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set
+        attn_drop (float, optional): Dropout ratio of attention weight. Default: 0.0
+        proj_drop (float, optional): Dropout ratio of output. Default: 0.0
+    """
+
+    def __init__(self, dim, window_size, num_heads, qkv_bias=True, qk_scale=None, attn_drop=0., proj_drop=0.,
+                 shift_size=0, agent_num=49, **kwargs):
+
+        super().__init__()
+        self.dim = dim
+        self.window_size = window_size  # Wh, Ww
+        self.num_heads = num_heads
+        head_dim = dim // num_heads
+        self.scale = head_dim ** -0.5
+        self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
+        self.attn_drop = nn.Dropout(attn_drop)
+        self.proj = nn.Linear(dim, dim)
+        self.proj_drop = nn.Dropout(proj_drop)
+        self.softmax = nn.Softmax(dim=-1)
+        self.shift_size = shift_size
+
+        self.agent_num = agent_num
+        self.dwc = nn.Conv2d(in_channels=dim, out_channels=dim, kernel_size=(3, 3), padding=1, groups=dim)
+        self.an_bias = nn.Parameter(torch.zeros(num_heads, agent_num, 7, 7))
+        self.na_bias = nn.Parameter(torch.zeros(num_heads, agent_num, 7, 7))
+        self.ah_bias = nn.Parameter(torch.zeros(1, num_heads, agent_num, window_size[0], 1))
+        self.aw_bias = nn.Parameter(torch.zeros(1, num_heads, agent_num, 1, window_size[1]))
+        self.ha_bias = nn.Parameter(torch.zeros(1, num_heads, window_size[0], 1, agent_num))
+        self.wa_bias = nn.Parameter(torch.zeros(1, num_heads, 1, window_size[1], agent_num))
+        nn.init.trunc_normal_(self.an_bias, std=.02)
+        nn.init.trunc_normal_(self.na_bias, std=.02)
+        nn.init.trunc_normal_(self.ah_bias, std=.02)
+        nn.init.trunc_normal_(self.aw_bias, std=.02)
+        nn.init.trunc_normal_(self.ha_bias, std=.02)
+        nn.init.trunc_normal_(self.wa_bias, std=.02)
+        pool_size = int(agent_num ** 0.5)
+        self.pool = nn.AdaptiveAvgPool2d(output_size=(pool_size, pool_size))
+
+    def forward(self, x, mask=None):
+        """
+        Args:
+            x: input features with shape of (num_windows*B, N, C)
+            mask: (0/-inf) mask with shape of (num_windows, Wh*Ww, Wh*Ww) or None
+        """
+        b, n, c = x.shape
+        h = int(n ** 0.5)
+        w = int(n ** 0.5)
+        num_heads = self.num_heads
+        head_dim = c // num_heads
+        qkv = self.qkv(x).reshape(b, n, 3, c).permute(2, 0, 1, 3)
+        q, k, v = qkv[0], qkv[1], qkv[2]  # make torchscript happy (cannot use tensor as tuple)
+        # q, k, v: b, n, c
+
+        agent_tokens = self.pool(q.reshape(b, h, w, c).permute(0, 3, 1, 2)).reshape(b, c, -1).permute(0, 2, 1)
+        q = q.reshape(b, n, num_heads, head_dim).permute(0, 2, 1, 3)
+        k = k.reshape(b, n, num_heads, head_dim).permute(0, 2, 1, 3)
+        v = v.reshape(b, n, num_heads, head_dim).permute(0, 2, 1, 3)
+        agent_tokens = agent_tokens.reshape(b, self.agent_num, num_heads, head_dim).permute(0, 2, 1, 3)
+
+        position_bias1 = nn.functional.interpolate(self.an_bias, size=self.window_size, mode='bilinear')
+        position_bias1 = position_bias1.reshape(1, num_heads, self.agent_num, -1).repeat(b, 1, 1, 1)
+        position_bias2 = (self.ah_bias + self.aw_bias).reshape(1, num_heads, self.agent_num, -1).repeat(b, 1, 1, 1)
+        position_bias = position_bias1 + position_bias2
+        agent_attn = self.softmax((agent_tokens * self.scale) @ k.transpose(-2, -1) + position_bias)
+        agent_attn = self.attn_drop(agent_attn)
+        agent_v = agent_attn @ v
+
+        agent_bias1 = nn.functional.interpolate(self.na_bias, size=self.window_size, mode='bilinear')
+        agent_bias1 = agent_bias1.reshape(1, num_heads, self.agent_num, -1).permute(0, 1, 3, 2).repeat(b, 1, 1, 1)
+        agent_bias2 = (self.ha_bias + self.wa_bias).reshape(1, num_heads, -1, self.agent_num).repeat(b, 1, 1, 1)
+        agent_bias = agent_bias1 + agent_bias2
+        q_attn = self.softmax((q * self.scale) @ agent_tokens.transpose(-2, -1) + agent_bias)
+        q_attn = self.attn_drop(q_attn)
+        x = q_attn @ agent_v
+
+        x = x.transpose(1, 2).reshape(b, n, c)
+        v = v.transpose(1, 2).reshape(b, h, w, c).permute(0, 3, 1, 2)
+        x = x + self.dwc(v).permute(0, 2, 3, 1).reshape(b, n, c)
+
+        x = self.proj(x)
+        x = self.proj_drop(x)
+        return x
+
+    def extra_repr(self) -> str:
+        return f'dim={self.dim}, window_size={self.window_size}, num_heads={self.num_heads}'
+
+    def flops(self, N):
+        # calculate flops for 1 window with token length of N
+        flops = 0
+        # qkv = self.qkv(x)
+        flops += N * self.dim * 3 * self.dim
+        # attn = (q @ k.transpose(-2, -1))
+        flops += self.num_heads * N * (self.dim // self.num_heads) * N
+        #  x = (attn @ v)
+        flops += self.num_heads * N * N * (self.dim // self.num_heads)
+        # x = self.proj(x)
+        flops += N * self.dim * self.dim
+        return flops
 
 class AgentAttention_(nn.Module):
     def __init__(self, dim=96, num_heads=8, qkv_bias=False, attn_drop=0., proj_drop=0.,
@@ -277,8 +404,8 @@ class AgentAttention_(nn.Module):
         x = q_attn @ agent_v
 
         x = x.transpose(1, 2).reshape(b, n, c)
-        v_ = v[:, :, 1:, :].transpose(1, 2).reshape(b, h, w, c).permute(0, 3, 1, 2)
-        x[:, 1:, :] = x[:, 1:, :] + self.dwc(v_).permute(0, 2, 3, 1).reshape(b, n - 1, c)
+        v_ = v.transpose(1, 2).reshape(b, h, w, c).permute(0, 3, 1, 2)
+        x = x + self.dwc(v_).permute(0, 2, 3, 1).reshape(b, n, c)
 
         x = self.proj(x)
         x = self.proj_drop(x)
@@ -438,10 +565,10 @@ class AFormerAttentionOutput(nn.Module):
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.attention_norm = RMSNorm(config.hidden_size)
 
-    def forward(self, hidden_states, input_tensor, aug_tensor=0.):
+    def forward(self, hidden_states, input_tensor):
         hidden_states = self.dense(hidden_states)
         hidden_states = self.dropout(hidden_states)
-        hidden_states = self.attention_norm(hidden_states + input_tensor + aug_tensor)
+        hidden_states = self.attention_norm(hidden_states + input_tensor)
         return hidden_states
 class AFormerAttention(nn.Module):
     def __init__(self, config, is_cross_attention=False):
@@ -479,7 +606,7 @@ class AFormerAugAttention(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.self = AFormerSelfAttention(config, is_cross_attention=False)
-        self.a_attention = AgentAttention_()
+        self.a_attention = AgentAttention(config)
         self.output = AFormerAttentionOutput(config)
 
     def forward(
@@ -503,9 +630,11 @@ class AFormerAugAttention(nn.Module):
             past_key_value,
             output_attentions,
         )
-        aug_outputs = self.a_attention()
+        aug_outputs = self.a_attention(
+            hidden_states,
+            attention_mask,)
 
-        attention_output = self.output(self_outputs[0], hidden_states, aug_outputs)
+        attention_output = self.output((self_outputs[0] + aug_outputs + hidden_states)/3, hidden_states)  ## TODO 调试
         outputs = (attention_output,) + self_outputs[1:]  # add attentions if we output them
         return outputs
 

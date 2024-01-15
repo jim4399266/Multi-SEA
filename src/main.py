@@ -49,8 +49,7 @@ def main(args, config):
                   f'{config["image_encoder_config"]["image_size"]}_'
                   f'{config["text_encoder_config"]["tokenizer_name"]}'}
     )
-    log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch' and k!= 'dataset') else f'{v}'
-                         for k, v in prefix_dict.items()])
+
     if config['attention_groups']:
         prefix_dict.update({'arch': f'{config["arch"]}_GQA_{config["attention_groups"]}'})
     # if config['pretrained'] == "":
@@ -67,6 +66,8 @@ def main(args, config):
     #     )
     #     log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch') else f'{v}'
     #                          for k, v in prefix_dict.items()])
+    log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch' and k != 'dataset') else f'{v}'
+                         for k, v in prefix_dict.items()])
 
     output_dir = config['output_dir']
     if output_dir != None or "" or '':
