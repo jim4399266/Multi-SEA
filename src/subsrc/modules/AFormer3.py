@@ -136,8 +136,8 @@ class AgentAttention(nn.Module):
         self.key = nn.Linear(config.hidden_size, self.all_head_size)
         self.value = nn.Linear(config.hidden_size, self.all_head_size)
         self.dropout = nn.Dropout(config.attention_probs_dropout_prob)
-        self.position_embedding_type = getattr(config, "position_embedding_type", "absolute")
-        if self.position_embedding_type == "relative_key" or self.position_embedding_type == "relative_key_query":
+        self.position_embedding_type = getattr(config, "agent_position_embedding_type", "absolute")
+        if self.position_embedding_type == "agent_relative_key" or self.position_embedding_type == "agent_relative_key_query":
             self.max_position_embeddings = config.max_position_embeddings
             self.distance_embedding = nn.Embedding(2 * config.max_position_embeddings - 1, self.attention_head_size)
         self.save_attention = False
@@ -189,17 +189,17 @@ class AgentAttention(nn.Module):
         # [bs, head_n, agent_n, head_dim]  @ [bs, head_n, head_dim, seq_len] @ [bs, head_n, seq_len, head_dim]  ----->
         # [bs, head_n, agent_n, head_dim]
         ## TODO 添加 position_bias 和 agent_bias
-        if self.position_embedding_type == "relative_key" or self.position_embedding_type == "relative_key_query":
+        if self.position_embedding_type == "agent_relative_key" or self.position_embedding_type == "agent_relative_key_query":
             # seq_length = hidden_states.size()[1]
             position_agent_l = torch.arange(self.agent_num, dtype=torch.long, device=hidden_states.device).view(-1, 1)
             position_agent_r = torch.arange(seq_len, dtype=torch.long, device=hidden_states.device).view(1, -1)
             distance = position_agent_l - position_agent_r
             positional_embedding = self.distance_embedding(distance + self.max_position_embeddings - 1)
             positional_embedding = positional_embedding.to(dtype=hidden_states.dtype)  # fp16 compatibility
-            if self.position_embedding_type == "relative_key":
+            if self.position_embedding_type == "agent_relative_key":
                 relative_position_scores = torch.einsum("bhld,lrd->bhlr", agent_tokens, positional_embedding)
                 position_bias = relative_position_scores
-            elif self.position_embedding_type == "relative_key_query":
+            elif self.position_embedding_type == "agent_relative_key_query":
                 relative_position_scores_query = torch.einsum("bhld,lrd->bhlr", agent_tokens, positional_embedding)
                 relative_position_scores_key = torch.einsum("bhrd,lrd->bhlr", key_layer, positional_embedding)
                 position_bias = relative_position_scores_query + relative_position_scores_key
@@ -214,17 +214,17 @@ class AgentAttention(nn.Module):
 
         ## Step 2, Agent Broadcast.  Y = Q @ A^T :
         # [bs, head_n, seq_len, head_dim] @ [bs, head_n, head_dim, agent_n] ----> [bs, head_n, seq_len, agent_n]
-        if self.position_embedding_type == "relative_key" or self.position_embedding_type == "relative_key_query":
+        if self.position_embedding_type == "agent_relative_key" or self.position_embedding_type == "agent_relative_key_query":
             # seq_length = hidden_states.size()[1]
             position_pos_l = torch.arange(seq_len, dtype=torch.long, device=hidden_states.device).view(-1, 1)
             position_pos_r = torch.arange(self.agent_num, dtype=torch.long, device=hidden_states.device).view(1, -1)
             distance = position_pos_l - position_pos_r
             positional_embedding = self.distance_embedding(distance + self.max_position_embeddings - 1)
             positional_embedding = positional_embedding.to(dtype=hidden_states.dtype)  # fp16 compatibility
-            if self.position_embedding_type == "relative_key":
+            if self.position_embedding_type == "agent_relative_key":
                 relative_position_scores = torch.einsum("bhld,lrd->bhlr", query_layer, positional_embedding)
                 agent_bias = relative_position_scores
-            elif self.position_embedding_type == "relative_key_query":
+            elif self.position_embedding_type == "agent_relative_key_query":
                 relative_position_scores_query = torch.einsum("bhld,lrd->bhlr", query_layer, positional_embedding)
                 relative_position_scores_key = torch.einsum("bhrd,lrd->bhlr", agent_tokens, positional_embedding)
                 agent_bias = relative_position_scores_query + relative_position_scores_key

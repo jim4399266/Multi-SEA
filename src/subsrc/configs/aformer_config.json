@@ -18,6 +18,6 @@
   "vocab_size": 30524,
   "encoder_width": 768,
   "add_cross_attention": true,
-  "position_embedding_type": "relative_key_query"
+  "agent_position_embedding_type": "agent_relative_key_query"
 
 }
