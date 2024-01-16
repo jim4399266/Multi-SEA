@@ -184,12 +184,26 @@ class AgentAttention(nn.Module):
         q = query_layer.transpose(1, 2).reshape(bs, seq_len, dim)
         agent_tokens = F.interpolate(q.unsqueeze(0), size=(self.agent_num, dim), mode='bilinear', align_corners=False).squeeze()
         agent_tokens = self.transpose_for_scores(agent_tokens)
+
         ## Step 1, Agent Aggregation.  X = A @ K^T  @ V :
         # [bs, head_n, agent_n, head_dim]  @ [bs, head_n, head_dim, seq_len] @ [bs, head_n, seq_len, head_dim]  ----->
         # [bs, head_n, agent_n, head_dim]
-
         ## TODO 添加 position_bias 和 agent_bias
-        position_bias = 0.
+        if self.position_embedding_type == "relative_key" or self.position_embedding_type == "relative_key_query":
+            # seq_length = hidden_states.size()[1]
+            position_agent_l = torch.arange(self.agent_num, dtype=torch.long, device=hidden_states.device).view(-1, 1)
+            position_agent_r = torch.arange(seq_len, dtype=torch.long, device=hidden_states.device).view(1, -1)
+            distance = position_agent_l - position_agent_r
+            positional_embedding = self.distance_embedding(distance + self.max_position_embeddings - 1)
+            positional_embedding = positional_embedding.to(dtype=hidden_states.dtype)  # fp16 compatibility
+            if self.position_embedding_type == "relative_key":
+                relative_position_scores = torch.einsum("bhld,lrd->bhlr", agent_tokens, positional_embedding)
+                position_bias = relative_position_scores
+            elif self.position_embedding_type == "relative_key_query":
+                relative_position_scores_query = torch.einsum("bhld,lrd->bhlr", agent_tokens, positional_embedding)
+                relative_position_scores_key = torch.einsum("bhrd,lrd->bhlr", key_layer, positional_embedding)
+                position_bias = relative_position_scores_query + relative_position_scores_key
+
         agent_attn_score = (torch.matmul(agent_tokens * self.scale, key_layer.transpose(-2, -1))) + position_bias
         if attention_mask is not None:
             # attention_mask : [bs, head_n, agent_n, seq_len]
@@ -200,7 +214,21 @@ class AgentAttention(nn.Module):
 
         ## Step 2, Agent Broadcast.  Y = Q @ A^T :
         # [bs, head_n, seq_len, head_dim] @ [bs, head_n, head_dim, agent_n] ----> [bs, head_n, seq_len, agent_n]
-        agent_bias = 0.
+        if self.position_embedding_type == "relative_key" or self.position_embedding_type == "relative_key_query":
+            # seq_length = hidden_states.size()[1]
+            position_pos_l = torch.arange(seq_len, dtype=torch.long, device=hidden_states.device).view(-1, 1)
+            position_pos_r = torch.arange(self.agent_num, dtype=torch.long, device=hidden_states.device).view(1, -1)
+            distance = position_pos_l - position_pos_r
+            positional_embedding = self.distance_embedding(distance + self.max_position_embeddings - 1)
+            positional_embedding = positional_embedding.to(dtype=hidden_states.dtype)  # fp16 compatibility
+            if self.position_embedding_type == "relative_key":
+                relative_position_scores = torch.einsum("bhld,lrd->bhlr", query_layer, positional_embedding)
+                agent_bias = relative_position_scores
+            elif self.position_embedding_type == "relative_key_query":
+                relative_position_scores_query = torch.einsum("bhld,lrd->bhlr", query_layer, positional_embedding)
+                relative_position_scores_key = torch.einsum("bhrd,lrd->bhlr", agent_tokens, positional_embedding)
+                agent_bias = relative_position_scores_query + relative_position_scores_key
+
         q_attn_score = (torch.matmul(query_layer * self.scale, agent_tokens.transpose(-2, -1))) + agent_bias
         if attention_mask is not None:
             # attention_mask : [bs, head_n, seq_len, agent_n]
@@ -213,7 +241,7 @@ class AgentAttention(nn.Module):
         x = torch.matmul(q_attn_probs_dropped, agent_v).transpose(1, 2).reshape(bs, seq_len, dim)
         v = value_layer.transpose(1, 2).reshape(bs, seq_len, dim)
         # TODO dwc的卷积方法
-        # x = x + self.dwc(v.unsqueeze(1)).squeeze()
+        x = x + self.dwc(v.unsqueeze(1)).squeeze()
 
         return x
 

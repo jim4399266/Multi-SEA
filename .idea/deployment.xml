@@ -109,6 +109,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="内蒙古A-347_root@region-3.seetacloud.com:54396 pt2">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/codes/my_retrieval_model" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
     <option name="myAutoUpload" value="ALWAYS" />
   </component>
