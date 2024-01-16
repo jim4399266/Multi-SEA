@@ -213,7 +213,7 @@ class AgentAttention(nn.Module):
         x = torch.matmul(q_attn_probs_dropped, agent_v).transpose(1, 2).reshape(bs, seq_len, dim)
         v = value_layer.transpose(1, 2).reshape(bs, seq_len, dim)
         # TODO dwc的卷积方法
-        x = x + self.dwc(v.unsqueeze(1)).squeeze()
+        # x = x + self.dwc(v.unsqueeze(1)).squeeze()
 
         return x
 
