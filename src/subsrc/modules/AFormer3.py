@@ -188,7 +188,6 @@ class AgentAttention(nn.Module):
         ## Step 1, Agent Aggregation.  X = A @ K^T  @ V :
         # [bs, head_n, agent_n, head_dim]  @ [bs, head_n, head_dim, seq_len] @ [bs, head_n, seq_len, head_dim]  ----->
         # [bs, head_n, agent_n, head_dim]
-        ## TODO 添加 position_bias 和 agent_bias
         if self.position_embedding_type == "agent_relative_key" or self.position_embedding_type == "agent_relative_key_query":
             # seq_length = hidden_states.size()[1]
             position_agent_l = torch.arange(self.agent_num, dtype=torch.long, device=hidden_states.device).view(-1, 1)
@@ -261,7 +260,6 @@ class AgentAttention_1(nn.Module):
 
     def __init__(self, dim, window_size, num_heads, qkv_bias=True, qk_scale=None, attn_drop=0., proj_drop=0.,
                  shift_size=0, agent_num=49, **kwargs):
-
         super().__init__()
         self.dim = dim
         self.window_size = window_size  # Wh, Ww

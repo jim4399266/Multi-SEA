@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="tzj_server@100.92.137.141:13579 pt2" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="内蒙古A-147_root@region-3.seetacloud.com:28474 pt2" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="cad02_tzj@10.112.67.227:17877">
         <serverdata>
@@ -92,6 +92,13 @@
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="内蒙古A-147_root@region-3.seetacloud.com:28474 pt2">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/codes/my_retrieval_model" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

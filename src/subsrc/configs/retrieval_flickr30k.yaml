@@ -14,7 +14,7 @@ log_dir: "../logs_flickr30k"
 test_checkpoints_dir: ""
 checkpoint: ''
 arch: 'Aformer3_SwiGLU_queue_new'
-desc: '测试AgentAttention，版本3，添加“relative_key_query”的position embedding'
+desc: '测试AgentAttention，版本4，添加“relative_key”的position embedding'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
