@@ -664,7 +664,7 @@ class AFormerAugAttention(nn.Module):
             hidden_states,
             attention_mask,)
 
-        attention_output = self.output(self_outputs[0] + aug_outputs + hidden_states, hidden_states)
+        attention_output = self.output(self_outputs[0] + aug_outputs, hidden_states)
         ## TODO 调试
         outputs = (attention_output,) + self_outputs[1:]  # add attentions if we output them
         return outputs
