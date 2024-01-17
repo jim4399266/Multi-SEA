@@ -17,7 +17,6 @@
   "type_vocab_size": 2,
   "vocab_size": 30524,
   "encoder_width": 768,
-  "add_cross_attention": true,
-  "agent_position_embedding_type": "agent_relative_key"
+  "add_cross_attention": true
 
 }

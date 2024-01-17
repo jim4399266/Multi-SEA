@@ -188,6 +188,7 @@ class AgentAttention(nn.Module):
         ## Step 1, Agent Aggregation.  X = A @ K^T  @ V :
         # [bs, head_n, agent_n, head_dim]  @ [bs, head_n, head_dim, seq_len] @ [bs, head_n, seq_len, head_dim]  ----->
         # [bs, head_n, agent_n, head_dim]
+
         if self.position_embedding_type == "agent_relative_key" or self.position_embedding_type == "agent_relative_key_query":
             # seq_length = hidden_states.size()[1]
             position_agent_l = torch.arange(self.agent_num, dtype=torch.long, device=hidden_states.device).view(-1, 1)
@@ -202,7 +203,8 @@ class AgentAttention(nn.Module):
                 relative_position_scores_query = torch.einsum("bhld,lrd->bhlr", agent_tokens, positional_embedding)
                 relative_position_scores_key = torch.einsum("bhrd,lrd->bhlr", key_layer, positional_embedding)
                 position_bias = relative_position_scores_query + relative_position_scores_key
-
+        else:
+            position_bias = 0.
         agent_attn_score = (torch.matmul(agent_tokens * self.scale, key_layer.transpose(-2, -1))) + position_bias
         if attention_mask is not None:
             # attention_mask : [bs, head_n, agent_n, seq_len]
@@ -227,6 +229,8 @@ class AgentAttention(nn.Module):
                 relative_position_scores_query = torch.einsum("bhld,lrd->bhlr", query_layer, positional_embedding)
                 relative_position_scores_key = torch.einsum("bhrd,lrd->bhlr", agent_tokens, positional_embedding)
                 agent_bias = relative_position_scores_query + relative_position_scores_key
+        else:
+            agent_bias = 0.
 
         q_attn_score = (torch.matmul(query_layer * self.scale, agent_tokens.transpose(-2, -1))) + agent_bias
         if attention_mask is not None:
@@ -660,7 +664,8 @@ class AFormerAugAttention(nn.Module):
             hidden_states,
             attention_mask,)
 
-        attention_output = self.output((self_outputs[0] + aug_outputs + hidden_states)/3, hidden_states)  ## TODO 调试
+        attention_output = self.output(self_outputs[0] + aug_outputs + hidden_states, hidden_states)
+        ## TODO 调试
         outputs = (attention_output,) + self_outputs[1:]  # add attentions if we output them
         return outputs
 

@@ -7,14 +7,14 @@ log_dir: "../logs_flickr30k"
 # set pretrained as a file path or an url
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
 
-#datasets: ['coco']
-#data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
-#output_dir: "/root/autodl-tmp/outputs"
+#data_root: "/root/autodl-tmp/datas/flickr30k_karpathy_prepared"
+#output_dir: "/root/autodl-tmp/outputs_flickr30k"
 #log_dir: "/root/tf-logs"
+
 test_checkpoints_dir: ""
 checkpoint: ''
 arch: 'Aformer3_SwiGLU_queue_new'
-desc: '测试AgentAttention，版本4，添加“relative_key”的position embedding'
+desc: '测试AgentAttention，版本6，Aug部分三者相加，不除以3'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -53,7 +53,7 @@ image_encoder_config:
   vit_name: 'ViT-B-32'
 #  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
   vit: '/home/tzj/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
-#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-32.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
   patch_size: 32 # 送入vit的图片块的像素
   # 预处理图片的模型（将图片处理为image_size * image_size）
