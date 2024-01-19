@@ -144,7 +144,7 @@ class AgentAttention(nn.Module):
 
         self.scale = self.attention_head_size ** -0.5
         self.softmax = nn.Softmax(dim=-1)
-        self.agent_num=50
+        self.agent_num = 40
         # self.sampler = F.interpolate(output_size=self.agent_num)
         # self.pooler = nn.AdaptiveAvgPool1d(output_size=self.agent_num)
         self.dwc = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=(3, 3), padding=1)

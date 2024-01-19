@@ -14,7 +14,7 @@ log_dir: "../logs_flickr30k"
 test_checkpoints_dir: ""
 checkpoint: ''
 arch: 'Aformer3_SwiGLU_queue_new'
-desc: '测试AgentAttention，版本7，Aug部分只有self和agent，不平均，使用VIT-B-16'
+desc: '测试AgentAttention，版本8，Agent num = 40，不平均，使用VIT-B-16'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -38,7 +38,7 @@ check_val_every_n_epoch: 5 # 每几个epoch验证一次
 accelerator: 'gpu'
 devices: [0,1]
 batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 50  # you should define this manually with per_gpu_batch_size=#
+per_gpu_batch_size: 20  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8
