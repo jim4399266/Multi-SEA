@@ -14,7 +14,7 @@ log_dir: "/root/tf-logs"
 test_checkpoints_dir: ""
 checkpoint: ''
 arch: 'Aformer_SwiGLU_queue_new'
-desc: '测试AgentAttention，版本9，Agent num = 40，平均，使用VIT-B-16'
+desc: '测试AgentAttention，版本10，Agent num = 40，平均，使用agent_relative_key_query，使用VIT-B-16'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
