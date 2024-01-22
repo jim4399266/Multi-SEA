@@ -121,7 +121,7 @@ class GQA_Linear(nn.Linear):
         return x
 
 class AgentAttention(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, is_cross_attention=False):
         super(AgentAttention, self).__init__()
         self.config = config
         if config.hidden_size % config.num_attention_heads != 0 and not hasattr(config, "embedding_size"):
@@ -133,8 +133,25 @@ class AgentAttention(nn.Module):
         self.attention_head_size = int(config.hidden_size / config.num_attention_heads)
         self.all_head_size = self.num_attention_heads * self.attention_head_size
         self.query = nn.Linear(config.hidden_size, self.all_head_size)
-        self.key = nn.Linear(config.hidden_size, self.all_head_size)
-        self.value = nn.Linear(config.hidden_size, self.all_head_size)
+        if is_cross_attention:
+            if not config.attention_groups:
+                self.key = nn.Linear(config.encoder_width, self.all_head_size)
+                self.value = nn.Linear(config.encoder_width, self.all_head_size)
+            # else:
+            #     ## Group-Query Attention
+            #     kv_head = self.num_attention_heads // config.attention_groups
+            #     self.key = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
+            #     self.value = GQA_Linear(config.encoder_width, kv_head, self.attention_head_size, config.attention_groups)
+            else:
+                ## Group-Query Attention 1
+                in_features = config.encoder_width // config.attention_groups
+                self.key = GQA_Linear_new(in_features, self.num_attention_heads, self.attention_head_size,
+                                          config.attention_groups)
+                self.value = GQA_Linear_new(in_features, self.num_attention_heads, self.attention_head_size,
+                                            config.attention_groups)
+        else:
+            self.key = nn.Linear(config.hidden_size, self.all_head_size)
+            self.value = nn.Linear(config.hidden_size, self.all_head_size)
         self.dropout = nn.Dropout(config.attention_probs_dropout_prob)
         self.position_embedding_type = getattr(config, "agent_position_embedding_type", "absolute")
         if self.position_embedding_type == "agent_relative_key" or self.position_embedding_type == "agent_relative_key_query":
@@ -164,19 +181,33 @@ class AgentAttention(nn.Module):
             use_cache=False,
             past_key_value=None,
             output_attentions=False,
-
     ):
         '''
         :param hidden_states: [bs, seq_len, hidden_size]
         :param attention_mask:  [bs, 1, 1, seq_len]
         :param output_attentions:
         '''
-        bs, seq_len, dim = hidden_states.size()
-        # agent_num = hidden_states.size(1) // 2
+
         ## query, key, value : [bs, heads, seq_len, head_dim]
         query_layer = self.transpose_for_scores(self.query(hidden_states))
-        key_layer = self.transpose_for_scores(self.key(hidden_states))
-        value_layer = self.transpose_for_scores(self.value(hidden_states))
+        is_cross_attention = encoder_hidden_states is not None
+        bs, seq_len, dim = hidden_states.size()
+        bs_kv, seq_len_kv, dim_kv = encoder_hidden_states.size() if is_cross_attention else hidden_states.size()
+        if is_cross_attention:
+            key_layer = self.transpose_for_scores(self.key(encoder_hidden_states))
+            value_layer = self.transpose_for_scores(self.value(encoder_hidden_states))
+            agent_attention_mask, q_attention_mask = encoder_attention_mask, attention_mask.transpose(-1, -2)
+
+        elif past_key_value is not None and use_cache:
+            key_layer = self.transpose_for_scores(self.key(hidden_states))
+            value_layer = self.transpose_for_scores(self.value(hidden_states))
+            key_layer = torch.cat([past_key_value[0], key_layer], dim=2)
+            value_layer = torch.cat([past_key_value[1], value_layer], dim=2)
+            agent_attention_mask, q_attention_mask = attention_mask, attention_mask.transpose(-1, -2)
+        else:
+            key_layer = self.transpose_for_scores(self.key(hidden_states))
+            value_layer = self.transpose_for_scores(self.value(hidden_states))
+            agent_attention_mask, q_attention_mask = attention_mask, attention_mask.transpose(-1, -2)
 
         ## agent_tokens : [bs, heads, agent_num, head_dim]
         # agent_tokens = self.transpose_for_scores(self.pooler(query_layer.transpose(1, 2).reshape(bs, seq_len, dim)))
@@ -192,7 +223,7 @@ class AgentAttention(nn.Module):
         if self.position_embedding_type == "agent_relative_key" or self.position_embedding_type == "agent_relative_key_query":
             # seq_length = hidden_states.size()[1]
             position_agent_l = torch.arange(self.agent_num, dtype=torch.long, device=hidden_states.device).view(-1, 1)
-            position_agent_r = torch.arange(seq_len, dtype=torch.long, device=hidden_states.device).view(1, -1)
+            position_agent_r = torch.arange(seq_len_kv, dtype=torch.long, device=hidden_states.device).view(1, -1)
             distance = position_agent_l - position_agent_r
             positional_embedding = self.distance_embedding(distance + self.max_position_embeddings - 1)
             positional_embedding = positional_embedding.to(dtype=hidden_states.dtype)  # fp16 compatibility
@@ -206,9 +237,9 @@ class AgentAttention(nn.Module):
         else:
             position_bias = 0.
         agent_attn_score = (torch.matmul(agent_tokens * self.scale, key_layer.transpose(-2, -1))) + position_bias
-        if attention_mask is not None:
+        if agent_attention_mask is not None:
             # attention_mask : [bs, head_n, agent_n, seq_len]
-            agent_attn_score = agent_attn_score + attention_mask
+            agent_attn_score = agent_attn_score + agent_attention_mask
         agent_attn_probs = nn.Softmax(dim=-1)(agent_attn_score)
         agent_attn_probs_dropped = self.dropout(agent_attn_probs)
         agent_v = torch.matmul(agent_attn_probs_dropped, value_layer)
@@ -233,20 +264,23 @@ class AgentAttention(nn.Module):
             agent_bias = 0.
 
         q_attn_score = (torch.matmul(query_layer * self.scale, agent_tokens.transpose(-2, -1))) + agent_bias
-        if attention_mask is not None:
+        if q_attention_mask is not None:
             # attention_mask : [bs, head_n, seq_len, agent_n]
-            q_attn_score = q_attn_score + attention_mask.transpose(-1, -2)
+            q_attn_score = q_attn_score + q_attention_mask
         q_attn_probs = nn.Softmax(dim=-1)(q_attn_score)
         q_attn_probs_dropped = self.dropout(q_attn_probs)
 
         ## Step 3, Generalized Linear Attention.  Y @ X:
         # [bs, head_n, seq_len, agent_n] @ [bs, head_n, agent_n, head_dim] ----> [bs, head_n, seq_len, head_dim]
         x = torch.matmul(q_attn_probs_dropped, agent_v).transpose(1, 2).reshape(bs, seq_len, dim)
-        v = value_layer.transpose(1, 2).reshape(bs, seq_len, dim)
         # TODO dwc的卷积方法
-        x = x + self.dwc(v.unsqueeze(1)).squeeze()
+        # v = value_layer.transpose(1, 2).reshape(bs, -1, dim)
+        # x = x + self.dwc(v.unsqueeze(1)).squeeze()
+        x = x + self.dwc(q.reshape(bs, -1, dim).unsqueeze(1)).squeeze()
 
-        return x
+        outputs = (x, agent_attn_probs, q_attn_probs) if output_attentions else (x,)
+        outputs = outputs + (past_key_value,)
+        return outputs
 
 
 class AgentAttention_1(nn.Module):
@@ -632,11 +666,42 @@ class AFormerAttention(nn.Module):
         outputs = (attention_output,) + self_outputs[1:]  # add attentions if we output them
         return outputs
 
-class AFormerAugAttention(nn.Module):
-    def __init__(self, config):
+class AFormerAgentAttention(nn.Module):
+    def __init__(self, config, is_cross_attention=False):
         super().__init__()
-        self.self = AFormerSelfAttention(config, is_cross_attention=False)
-        self.a_attention = AgentAttention(config)
+        self.attn = AgentAttention(config, is_cross_attention)
+        self.output = AFormerAttentionOutput(config)
+
+    def forward(
+            self,
+            hidden_states,
+            attention_mask=None,
+            head_mask=None,
+            encoder_hidden_states=None,
+            encoder_attention_mask=None,
+            use_cache=False,
+            past_key_value=None,
+            output_attentions=False,
+    ):
+        self_outputs = self.attn(
+            hidden_states,
+            attention_mask,
+            head_mask,
+            encoder_hidden_states,
+            encoder_attention_mask,
+            use_cache,
+            past_key_value,
+            output_attentions,
+        )
+
+        attention_output = self.output(self_outputs[0], hidden_states)
+        outputs = (attention_output,) + self_outputs[1:]  # add attentions if we output them
+        return outputs
+class AFormerAugAttention(nn.Module):
+    def __init__(self, config, is_cross_attention=False):
+        super().__init__()
+        # self.self = AFormerSelfAttention(config, is_cross_attention=False)
+        self.a_attention = AgentAttention(config, is_cross_attention=True)
         self.output = AFormerAttentionOutput(config)
 
     def forward(
@@ -664,7 +729,7 @@ class AFormerAugAttention(nn.Module):
             hidden_states,
             attention_mask,)
 
-        attention_output = self.output((self_outputs[0] + aug_outputs)/2, hidden_states)
+        attention_output = self.output(self_outputs[0] + aug_outputs[0], hidden_states)
         ## TODO 调试
         outputs = (attention_output,) + self_outputs[1:]  # add attentions if we output them
         return outputs
@@ -689,9 +754,12 @@ class AFormerLayer(nn.Module):
         self.config = config
         self.seq_len_dim = 1
         self.chunk_size_feed_forward = 0
-        self.self_attention = AFormerAugAttention(config)
-        self.t_cross_attention = AFormerAttention(config, is_cross_attention=True)
-        self.i_cross_attention = AFormerAttention(config, is_cross_attention=True)
+        # self.self_attention = AFormerAugAttention(config)
+        # self.t_cross_attention = AFormerAttention(config, is_cross_attention=True)
+        # self.i_cross_attention = AFormerAttention(config, is_cross_attention=True)
+        self.self_attention = AFormerAttention(config, is_cross_attention=False)
+        self.t_cross_attention = AFormerAgentAttention(config, is_cross_attention=True)
+        self.i_cross_attention = AFormerAgentAttention(config, is_cross_attention=True)
         self.ffn = AFormerFeedForward(config)
 
 
