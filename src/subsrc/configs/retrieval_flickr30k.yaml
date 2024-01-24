@@ -14,7 +14,7 @@ log_dir: "../logs_flickr30k"
 test_checkpoints_dir: ""
 checkpoint: ''
 arch: 'Aformer4_SwiGLU_queue_new'
-desc: '将Agent attention替换cross attention，版本1：dwc对q卷积'
+desc: '将Agent attention替换cross attention，版本2：去除dwc卷积'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
