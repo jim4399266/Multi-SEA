@@ -276,7 +276,7 @@ class AgentAttention(nn.Module):
         # TODO dwc的卷积方法
         # v = value_layer.transpose(1, 2).reshape(bs, -1, dim)
         # x = x + self.dwc(v.unsqueeze(1)).squeeze()
-        x = x + self.dwc(q.reshape(bs, -1, dim).unsqueeze(1)).squeeze()
+        # x = x + self.dwc(q.reshape(bs, -1, dim).unsqueeze(1)).squeeze()
 
         outputs = (x, agent_attn_probs, q_attn_probs) if output_attentions else (x,)
         outputs = outputs + (past_key_value,)
