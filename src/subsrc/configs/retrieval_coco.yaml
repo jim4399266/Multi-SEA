@@ -28,7 +28,7 @@ distill: False
 momentum: 0.995
 alpha: 0.4
 negative_all_rank: True
-coco_scale: ['1k'] #测试集使用1k，5k还是都用
+coco_scale: ['5k'] #测试集使用1k，5k还是都用
 
 # ----------------------  Lightning Trainer Setting  ------------------------------
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
@@ -38,7 +38,7 @@ check_val_every_n_epoch: 5 # 每几个epoch验证一次
 accelerator: 'gpu'
 devices: [0,1]
 batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 10  # you should define this manually with per_gpu_batch_size=#
+per_gpu_batch_size: 20  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8

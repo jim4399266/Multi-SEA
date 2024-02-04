@@ -1,20 +1,20 @@
 # 常规设置
 datasets: ['flickr30k']
-data_root: "/home/tzj/datas/flickr30k_karpathy_prepared"
-output_dir: "../outputs_flickr30k"
-log_dir: "../logs_flickr30k"
+#data_root: "/home/tzj/datas/flickr30k_karpathy_prepared"
+#output_dir: "../outputs_flickr30k"
+#log_dir: "../logs_flickr30k"
 
 # set pretrained as a file path or an url
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
 
 #datasets: ['coco']
-#data_root: "/root/autodl-tmp/datas/flickr30k_karpathy_prepared"
-#output_dir: "/root/autodl-tmp/outputs_flickr30k"
-#log_dir: "/root/tf-logs"
+data_root: "/root/autodl-tmp/datas/flickr30k_karpathy_prepared"
+output_dir: "/root/autodl-tmp/outputs_flickr30k"
+log_dir: "/root/tf-logs"
 test_checkpoints_dir: ""
 checkpoint: ''
 arch: 'Aformer4_SwiGLU_queue_new'
-desc: '将Agent attention替换cross attention，版本2：去除dwc卷积'
+desc: 'flickr30k:将Agent attention替换cross attention，版本7：去除dwc卷积，精排4级输出'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -52,8 +52,8 @@ warmup_steps: 0.15
 image_encoder_config:
   vit_name: 'ViT-B-16'
 #  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
-  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
-#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+#  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
   patch_size: 16 # 送入vit的图片块的像素
   # 预处理图片的模型（将图片处理为image_size * image_size）
@@ -74,8 +74,8 @@ text_encoder_config:
 #  tokenizer: '/home/tzj/pretrained_models/xlm-roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
   tokenizer_name: 'roberta-base'
-#  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
-  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
+#  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
 #  tokenizer_name: 'roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
 

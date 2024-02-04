@@ -746,7 +746,7 @@ def train_irtr_with_queue_multi_out(pl_module, batch):
     # # 第0个位置表示正确的置信度，第1个位置表示错误的置信度
     # itm_labels = torch.cat([torch.zeros(bs, dtype=torch.long), torch.ones(2 * bs, dtype=torch.long)],dim=0).to(image_feats.device)
     itm_labels = torch.cat([torch.ones(bs, dtype=torch.long), torch.zeros(2 * bs, dtype=torch.long)],dim=0).to(image_feats.device)
-    itm_labels = itm_labels.repeat(2)
+
     output_t2i = pl_module.aformer(
         text_hidden_states,
         attention_mask=text_attention_mask,
@@ -765,8 +765,11 @@ def train_irtr_with_queue_multi_out(pl_module, batch):
         output_hidden_states=True,
     )
 
-    t2i_embedding = torch.cat([output_t2i.hidden_states[-3][:,0], output_t2i.hidden_states[-1][:,0]])   # 96,768
-    i2t_embedding = torch.cat([output_i2t.hidden_states[-3][:,0], output_i2t.hidden_states[-1][:,0]])
+    itm_labels = itm_labels.repeat(4)
+    t2i_embedding = torch.cat([state[:,0] for state in output_t2i.hidden_states[1:]])
+    i2t_embedding = torch.cat([state[:,0] for state in output_i2t.hidden_states[1:]])
+    # t2i_embedding = torch.cat([output_t2i.hidden_states[-3][:,0], output_t2i.hidden_states[-1][:,0]])   # 96,768
+    # i2t_embedding = torch.cat([output_i2t.hidden_states[-3][:,0], output_i2t.hidden_states[-1][:,0]])
 
     # t2i_embedding = output_t2i.last_hidden_state[:, 0]
     # i2t_embedding = output_i2t.last_hidden_state[:, 0]
