@@ -556,19 +556,78 @@ class AFormerFeedForward(nn.Module):
         hidden_states = self.swish(self.dense1(input_tensor)) * self.dense3(input_tensor)
         return self.ffn_norm(input_tensor + self.dropout(self.dense2(hidden_states)))
 
+class AFormerLayerExpert(torch.nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.self_attention = AFormerAttention(config, is_cross_attention=False)
+        self.cross_attention = AFormerAgentAttention(config, is_cross_attention=True)
+        self.ffn = AFormerFeedForward(config)
+        self.chunk_size_feed_forward = 0
+        self.seq_len_dim = 1
+
+    def forward(self,
+                hidden_states,
+                attention_mask=None,
+                head_mask=None,
+                encoder_hidden_states=None,
+                encoder_attention_mask=None,
+                use_cache=False,
+                past_kye_value=None,
+                output_attentions=False,
+                mode=None
+                ):
+        self_attn_past_key_value = past_kye_value[:2] if past_kye_value is not None else None
+        self_attention_outputs = self.self_attention(
+            hidden_states,
+            attention_mask,
+            head_mask,
+            use_cache=use_cache,
+            past_key_value=self_attn_past_key_value,
+            output_attentions=output_attentions,
+        )
+        attention_output = self_attention_outputs[0]
+        outputs = self_attention_outputs[1:-1]
+        present_key_value = self_attention_outputs[-1]
+
+        if mode == 't2i' or mode == 'i2t':
+            assert encoder_hidden_states is not None, "encoder_hidden_states must be given for cross-attention layers"
+            cross_attention_outputs = self.cross_attention(
+                attention_output,
+                attention_mask,
+                head_mask,
+                encoder_hidden_states,
+                encoder_attention_mask,
+                use_cache=use_cache,
+                output_attentions=output_attentions,
+            )
+            attention_output = cross_attention_outputs[0]
+            # add cross attentions if we output attention weights
+            outputs = outputs + cross_attention_outputs[1:-1]
+
+        layer_output = apply_chunking_to_forward(
+            self.ffn, self.chunk_size_feed_forward, self.seq_len_dim, attention_output
+        )
+
+        outputs = (layer_output,) + outputs
+        outputs = outputs + (present_key_value,)
+        return outputs
+
+
 class AFormerLayer(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self.seq_len_dim = 1
-        self.chunk_size_feed_forward = 0
         # self.self_attention = AFormerAugAttention(config)
         # self.t_cross_attention = AFormerAttention(config, is_cross_attention=True)
         # self.i_cross_attention = AFormerAttention(config, is_cross_attention=True)
-        self.self_attention = AFormerAttention(config, is_cross_attention=False)
-        self.t_cross_attention = AFormerAgentAttention(config, is_cross_attention=True)
-        self.i_cross_attention = AFormerAgentAttention(config, is_cross_attention=True)
-        self.ffn = AFormerFeedForward(config)
+        # self.t_self_attention = AFormerAttention(config, is_cross_attention=False)
+        # self.i_self_attention = AFormerAttention(config, is_cross_attention=False)
+        # self.t_cross_attention = AFormerAgentAttention(config, is_cross_attention=True)
+        # self.i_cross_attention = AFormerAgentAttention(config, is_cross_attention=True)
+        # self.t_ffn = AFormerFeedForward(config)
+        # self.i_ffn = AFormerFeedForward(config)
+        self.text_expert = AFormerLayerExpert(config)
+        self.image_expert = AFormerLayerExpert(config)
 
 
     def forward(self,
@@ -584,58 +643,35 @@ class AFormerLayer(nn.Module):
                 ):
         assert mode in [None, 'text', 'image', 't2i', 'i2t']
         # decoder uni-directional self-attention cached key/values tuple is at positions 1,2
-        self_attn_past_key_value = past_kye_value[:2] if past_kye_value is not None else None
-        self_attention_outputs = self.self_attention(
-                    hidden_states,
-                    attention_mask,
-                    head_mask,
-                    use_cache=use_cache,
-                    past_key_value=self_attn_past_key_value,
-                    output_attentions=output_attentions,
-                )
-        attention_output = self_attention_outputs[0]
-        outputs = self_attention_outputs[1:-1]
-        present_key_value = self_attention_outputs[-1]
 
-        if mode == 't2i' or mode == 'i2t':
-            assert encoder_hidden_states is not None, "encoder_hidden_states must be given for cross-attention layers"
-            if mode == 't2i':
-                cross_attention_outputs = self.t_cross_attention(
-                    attention_output,
-                    attention_mask,
-                    head_mask,
-                    encoder_hidden_states,
-                    encoder_attention_mask,
-                    use_cache=use_cache,
-                    output_attentions=output_attentions,
-                )
-            else:
-                cross_attention_outputs = self.i_cross_attention(
-                    attention_output,
-                    attention_mask,
-                    head_mask,
-                    encoder_hidden_states,
-                    encoder_attention_mask,
-                    use_cache=use_cache,
-                    output_attentions=output_attentions,
-                )
-            attention_output = cross_attention_outputs[0]
-            # add cross attentions if we output attention weights
-            outputs = outputs + cross_attention_outputs[1:-1]
+        if mode == 'text' or mode == 't2i':
+            outputs = self.text_expert(
+                hidden_states,
+                attention_mask,
+                head_mask,
+                encoder_hidden_states,
+                encoder_attention_mask,
+                use_cache=use_cache,
+                past_kye_value=past_kye_value,
+                output_attentions=output_attentions,
+                mode=mode,
+            )
+        elif mode == 'image' or mode == 'i2t':
+            outputs = self.image_expert(
+                hidden_states,
+                attention_mask,
+                head_mask,
+                encoder_hidden_states,
+                encoder_attention_mask,
+                use_cache=use_cache,
+                past_kye_value=past_kye_value,
+                output_attentions=output_attentions,
+                mode=mode,
+            )
+        else:
+            raise NotImplementedError
 
-
-        layer_output = apply_chunking_to_forward(
-            self.feed_forward_chunk, self.chunk_size_feed_forward, self.seq_len_dim, attention_output
-        )
-        outputs = (layer_output, ) + outputs
-        outputs = outputs + (present_key_value,)
         return outputs
-
-    def feed_forward_chunk(self, attention_output):
-        # intermediate_output = self.intermediate(attention_output)
-        # layer_output = self.output(intermediate_output, attention_output)
-        layer_output = self.ffn(attention_output)
-        return layer_output
 
 class AFormerEncoder(nn.Module):
     def __init__(self, config):
