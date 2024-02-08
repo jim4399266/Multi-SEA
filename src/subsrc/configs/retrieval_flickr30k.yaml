@@ -28,7 +28,7 @@ distill: False
 momentum: 0.995
 alpha: 0.4
 negative_all_rank: True
-coco_scale: ['1k'] #测试集使用1k，5k还是都用
+coco_scale: [''] #测试集使用1k，5k还是都用
 
 # ----------------------  Lightning Trainer Setting  ------------------------------
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
