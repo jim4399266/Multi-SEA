@@ -605,7 +605,7 @@ class AFormerLayerExpert(torch.nn.Module):
             outputs = outputs + cross_attention_outputs[1:-1]
 
         layer_output = apply_chunking_to_forward(
-            self.ffn, self.chunk_size_feed_forward, self.seq_len_dim, attention_output
+            self.ffn.forward, self.chunk_size_feed_forward, self.seq_len_dim, attention_output
         )
 
         outputs = (layer_output,) + outputs
