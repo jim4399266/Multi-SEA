@@ -84,11 +84,18 @@
       <paths name="tzj_server@100.92.137.141:13579 pt2">
         <serverdata>
           <mappings>
-            <mapping deploy="/codes/my_retrieval_model" local="$PROJECT_DIR$" web="/" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
       <paths name="内蒙古A-089_root@region-3.seetacloud.com:26043 pt2">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="内蒙古A-147_root@region-3.seetacloud.com:28474 pt2">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
@@ -103,6 +110,13 @@
         </serverdata>
       </paths>
       <paths name="内蒙古A-344_root@region-3.seetacloud.com:39458 pt2">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="内蒙古A-347_root@region-3.seetacloud.com:54396 pt2">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
