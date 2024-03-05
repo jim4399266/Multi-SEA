@@ -11,7 +11,7 @@ log_dir: "../logs"
 #data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
 #output_dir: "/root/autodl-tmp/outputs"
 #log_dir: "/root/tf-logs"
-test_checkpoints_dir: ""
+test_checkpoints_dir: "/home/tzj/codes/my_retrieval_model/outputs/coco_Aformer4_SwiGLU_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size500_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_0"
 checkpoint: ''
 arch: 'Aformer4_SwiGLU_queue_new'
 desc: 'mscoco:将Agent attention替换cross attention，版本8-2：去除dwc卷积，精排2级输出，分离self attn和ffn'
@@ -28,7 +28,7 @@ distill: False
 momentum: 0.995
 alpha: 0.4
 negative_all_rank: True
-coco_scale: ['5k'] #测试集使用1k，5k还是都用
+coco_scale: ['1k'] #测试集使用1k，5k还是都用
 
 # ----------------------  Lightning Trainer Setting  ------------------------------
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches

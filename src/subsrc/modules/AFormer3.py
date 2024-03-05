@@ -553,7 +553,9 @@ class AFormerFeedForward(nn.Module):
         self.swish = Swish(config.beta)
 
     def forward(self, input_tensor):
-        hidden_states = self.swish(self.dense1(input_tensor)) * self.dense3(input_tensor)
+        hidden_states = self.swish(self.dense1(input_tensor))
+        hidden_states = hidden_states * self.dense3(input_tensor)
+        # hidden_states = self.swish(self.dense1(input_tensor)) * self.dense3(input_tensor)
         return self.ffn_norm(input_tensor + self.dropout(self.dense2(hidden_states)))
 
 class AFormerLayerExpert(torch.nn.Module):

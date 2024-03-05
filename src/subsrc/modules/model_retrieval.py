@@ -24,6 +24,7 @@ from .model_base import BaseModule
 # from .AFormer import AFormer
 # from .AFormer1 import AFormer
 from .AFormer2 import AFormer, Pooler, Swish
+from .AFormer3 import AFormerWithAug
 from .AFormer4 import AFormerShared
 
 
