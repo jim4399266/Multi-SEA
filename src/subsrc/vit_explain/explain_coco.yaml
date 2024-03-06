@@ -11,10 +11,10 @@ log_dir: "../logs"
 #data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
 #output_dir: "/root/autodl-tmp/outputs"
 #log_dir: "/root/tf-logs"
-test_checkpoints_dir: "/home/tzj/codes/my_retrieval_model/outputs/coco_Aformer4_SwiGLU_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size500_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_0"
-checkpoint: ''
-arch: 'Aformer4_SwiGLU_queue_new'
-desc: 'mscoco:将Agent attention替换cross attention，版本8-2：去除dwc卷积，精排2级输出，分离self attn和ffn'
+test_checkpoints_dir: ""
+checkpoint: '/home/tzj/codes/my_retrieval_model/outputs/irtr_Aformer_SwiGLU_queue_new_Asize768_beta1.0_bs512_pbs16_queue_size500_topk64_epoch100_lr1e-05_layer6_from_ViT-B-16_224_roberta-base/version_2/step23600-val_score449.1496.ckpt'
+arch: 'Aformer_SwiGLU_queue_new'
+desc: '解冻语言编码器和视觉编码器后4层，编码综合预训练模型和AFormer（768），VIT-B/16，'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -34,17 +34,17 @@ coco_scale: ['1k'] #测试集使用1k，5k还是都用
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
 fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 # val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
-check_val_every_n_epoch: 10 # 每几个epoch验证一次
+check_val_every_n_epoch: 5 # 每几个epoch验证一次
 accelerator: 'gpu'
-devices: [0]
+devices: [0,1]
 batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 20  # you should define this manually with per_gpu_batch_size=#
+per_gpu_batch_size: 10  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8
 precision: 32
 max_grad_norm: 1.
-max_epoch: 200
+max_epoch: 100
 max_steps: -1
 warmup_steps: 0.15
 
@@ -84,7 +84,7 @@ text_encoder_config:
   mlm_prob: 0.15 # mlm遮罩比例
 
 # ----------------------  Transformer Setting  ----------------------
-aformer_config_path: 'subsrc/configs/aformer_config.json'
+aformer_config_path: '../configs/aformer_config.json'
 num_top_layer: 4  # 融合模块的层数
 hidden_size: 768
 attention_groups: False

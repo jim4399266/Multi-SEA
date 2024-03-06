@@ -761,7 +761,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
         image_embeds = image_outputs.last_hidden_state * self.alpha + pretrained_embeds * (1 - self.alpha)
         return [image_feats, image_embeds, image_atts]
 
-    def forward(self, batch, phase):
+    def forward(self, batch, phase=None):
         # return train.train_irtr_with_queue(self, batch)
         return train.train_irtr_with_queue_multi_out(self, batch)
 
@@ -828,6 +828,13 @@ class RetrievalModuleWithQueue_1(BaseModule):
     def on_test_epoch_end(self) -> None:
         self.epoch_wrapup(self.test_step_outputs, phase='test')
         self.test_step_outputs.clear()  # free memory
+
+    def predict_step(self, batch: Any, batch_idx: int = 0, dataloader_idx: int = 0) -> Any:
+        image_feats, image_embeds, image_atts = self.encoding_image(batch)
+        text_feats, text_embeds, text_atts = self.encoding_text(batch)
+        vectors = [text_embeds, text_feats, text_atts, image_embeds, image_feats, image_atts]
+        score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, vectors)
+
 
     def epoch_wrapup(self, step_outputs, phase):
         the_metric = 0
@@ -1102,11 +1109,21 @@ class RetrievalModuleWithQueue_1(BaseModule):
 
     @classmethod
     def from_checkpoint(cls, config, strict=True):
-        model = cls(config)
-        state_dict = model.get_state_dict(config['pretrained'])
-        msg = model.load_state_dict(state_dict, strict=strict)
-        print("missing keys:")
-        print(msg.missing_keys)
+        if config['checkpoint'] == None:
+            model = cls(config)
+            state_dict = model.get_state_dict(config['pretrained'])
+            msg = model.load_state_dict(state_dict, strict=strict)
+            print("missing keys:")
+            print(msg.missing_keys)
+        else:
+            checkpoint = torch.load(config['checkpoint'], map_location='cpu')
+            checkpoint_config = checkpoint['hyper_parameters']['config']
+            checkpoint_config['aformer_config_path'] = config['aformer_config_path']
+            state_dict = checkpoint['state_dict']
+            model = cls(checkpoint_config)
+            msg = model.load_state_dict(state_dict, strict=strict)
+            print("missing keys:")
+            print(msg.missing_keys)
         return model
 
     @torch.no_grad()
@@ -2103,11 +2120,21 @@ class RetrievalModuleWithQueueShared(BaseModule):
 
     @classmethod
     def from_checkpoint(cls, config, strict=True):
-        model = cls(config)
-        state_dict = model.get_state_dict(config['pretrained'])
-        msg = model.load_state_dict(state_dict, strict=strict)
-        print("missing keys:")
-        print(msg.missing_keys)
+        if config['checkpoint'] == None:
+            model = cls(config)
+            state_dict = model.get_state_dict(config['pretrained'])
+            msg = model.load_state_dict(state_dict, strict=strict)
+            print("missing keys:")
+            print(msg.missing_keys)
+        else:
+            checkpoint = torch.load(config['checkpoint'], map_location='cpu')
+            checkpoint_config = checkpoint['hyper_parameters']['config']
+            checkpoint_config['aformer_config_path'] = config['aformer_config_path']
+            state_dict = checkpoint['state_dict']
+            model = cls(checkpoint_config)
+            msg = model.load_state_dict(state_dict, strict=strict)
+            print("missing keys:")
+            print(msg.missing_keys)
         return model
 
     @torch.no_grad()
