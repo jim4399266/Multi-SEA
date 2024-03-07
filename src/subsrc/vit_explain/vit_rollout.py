@@ -8,9 +8,11 @@ from torch.utils.data import DataLoader, Dataset
 
 
 def rollout(attentions, discard_ratio, head_fusion):
+
     result = torch.eye(attentions[0].size(-1))
     with torch.no_grad():
         for attention in attentions:
+            attention = attention.mean(axis=0)
             if head_fusion == "mean":
                 attention_heads_fused = attention.mean(axis=1)
             elif head_fusion == "max":
@@ -72,26 +74,48 @@ class PredictBaseDataset(Dataset):
 
 
 class VITAttentionRollout:
-    def __init__(self, trainer, model, attention_layer_name='attn_drop', head_fusion="mean",
+    def __init__(self, trainer, model, attention_layer_name='dropout', head_fusion="mean",
                  discard_ratio=0.9):
         self.trainer = trainer
         self.model = model
         self.head_fusion = head_fusion
         self.discard_ratio = discard_ratio
+
+        self.i2i_attentions = []
+        self.t2t_attentions = []
+        self.i2t_attentions = []
+        self.t2i_attentions = []
+
         for name, module in self.model.named_modules():
-            if attention_layer_name in name:
-                module.register_forward_hook(self.get_attention)
+            if attention_layer_name in name and 'aformer' in name and ('attn' in name or '.self.' in name):
+                if 'text' in name:
+                    if 'cross' in name:
+                        module.register_forward_hook(self.get_t2i_attentions)
+                    else:
+                        module.register_forward_hook(self.get_t2t_attentions)
+                else:
+                    if 'cross' in name:
+                        module.register_forward_hook(self.get_i2t_attentions)
+                    else:
+                        module.register_forward_hook(self.get_i2i_attentions)
 
-        self.attentions = []
+    def get_t2i_attentions(self, module, fea_in, fea_out):
+        self.t2i_attentions.append(fea_out[0][1:].cpu())
 
-    def get_attention(self, module, input, output):
-        self.attentions.append(output.cpu())
+    def get_t2t_attentions(self, module, fea_in, fea_out):
+        self.t2t_attentions.append(fea_out[0][1:].cpu())
+
+    def get_i2t_attentions(self, module, fea_in, fea_out):
+        self.i2t_attentions.append(fea_out[0][1:,1:].cpu())
+
+    def get_i2i_attentions(self, module, fea_in, fea_out):
+        self.i2i_attentions.append(fea_out[0][1:,1:].cpu())
+
 
     def __call__(self, data_loader):
-        self.attentions = []
         with torch.no_grad():
             # output = self.model.predict_step(input_tensor, batch_idx=None)
             output = self.trainer.predict(self.model, data_loader)
 
 
-        return rollout(self.attentions, self.discard_ratio, self.head_fusion)
+        return rollout(self.i2i_attentions, self.discard_ratio, self.head_fusion)
