@@ -24,8 +24,10 @@ def get_args():
 
     # parser.add_argument('--use_cuda', action='store_true', default=False,
     #                     help='Use NVIDIA GPU acceleration')
-    parser.add_argument('--image_path', type=str, default='../examples/both.png',
+    parser.add_argument('--image_path', type=str, default='../examples/16151663.jpg',
                         help='Input image path')
+    parser.add_argument('--txt', type=str, default='guitar',
+                        help='Input text')
     parser.add_argument('--head_fusion', type=str, default='max',
                         help='How to fuse the attention heads for attention rollout. \
                         Can be mean/max/min')
@@ -33,6 +35,9 @@ def get_args():
                         help='How many of the lowest 14x14 attention paths should we discard')
     parser.add_argument('--category_index', type=int, default=None,
                         help='The category index for gradient rollout')
+    parser.add_argument('--attention_mode', type=str, default='t2i',
+                        help='Attention mode. '
+                             'Can be "i2t", "t2i", "i2i_p1", "i2i_p2", "t2t_p1", "t2t_p2"')
     args = parser.parse_args()
     # args.use_cuda = args.use_cuda and torch.cuda.is_available()
     # if args.use_cuda:
@@ -53,7 +58,8 @@ def show_mask_on_image(img, mask):
 def get_input_data(args, transform, tokenizer, device='cpu'):
     img = Image.open(args.image_path)
     img = img.resize((224, 224))
-    txt = '一只狗'
+    # txt = 'The pilot looking out of a British Airways airplane while two men are standing outside.'
+    txt = args.txt
     dataset = PredictBaseDataset(txt, img, transform, tokenizer)
 
     data_loader = DataLoader(dataset, batch_size=1, collate_fn=dataset.collate)
@@ -71,6 +77,7 @@ if __name__ == '__main__':
     model.eval()
     model = model.to(device)
     trainer = pl.Trainer(
+        logger=False,
         accelerator=config['accelerator'],
         devices=config['devices'],
     )
@@ -83,26 +90,34 @@ if __name__ == '__main__':
     tokenizer = AutoTokenizer.from_pretrained(config['text_encoder_config']['tokenizer'])
     img, txt, data_loader = get_input_data(args, transform, tokenizer, device)
 
-
+    img_tag = args.image_path.split("/")[-1].split(".")[0]
     if args.category_index is None:
         print("Doing Attention Rollout")
         attention_rollout = VITAttentionRollout(trainer,model, head_fusion=args.head_fusion,
             discard_ratio=args.discard_ratio)
-        mask = attention_rollout(data_loader)
-        name = "attention_rollout_{:.3f}_{}.png".format(args.discard_ratio, args.head_fusion)
+        mask = attention_rollout(data_loader, mode=args.attention_mode)
+        np_img = np.array(img)[:, :, ::-1]
+        for i, _mask in enumerate(mask, start=1):
+            name = "{}_attention_rollout_layer{}_{}_{:.3f}_{}:{}.png".format(
+            img_tag, i, args.attention_mode, args.discard_ratio, args.head_fusion, txt)
+
+            _mask = cv2.resize(_mask, (np_img.shape[1], np_img.shape[0]))
+            _mask = show_mask_on_image(np_img, _mask)
+            cv2.imwrite(name, _mask)
+
     else:
         print("Doing Gradient Attention Rollout")
         grad_rollout = VITAttentionGradRollout(model, discard_ratio=args.discard_ratio)
         mask = grad_rollout(data_loader, args.category_index)
-        name = "grad_rollout_{}_{:.3f}_{}.png".format(args.category_index,
+        name = "{}_grad_rollout_{}_{}_{:.3f}_{}.png".format(img_tag, args.attention_mode, args.category_index,
             args.discard_ratio, args.head_fusion)
 
 
-    np_img = np.array(img)[:, :, ::-1]
-    mask = cv2.resize(mask, (np_img.shape[1], np_img.shape[0]))
-    mask = show_mask_on_image(np_img, mask)
-    cv2.imshow("Input Image", np_img)
-    cv2.imshow(name, mask)
-    cv2.imwrite("input.png", np_img)
-    cv2.imwrite(name, mask)
-    cv2.waitKey(-1)
+    # np_img = np.array(img)[:, :, ::-1]
+    # mask = cv2.resize(mask, (np_img.shape[1], np_img.shape[0]))
+    # mask = show_mask_on_image(np_img, mask)
+    # # cv2.imshow("Input Image", np_img)
+    # # cv2.imshow(name, mask)
+    # cv2.imwrite("input.png", np_img)
+    # cv2.imwrite(name, mask)
+    # # cv2.waitKey(-1)
