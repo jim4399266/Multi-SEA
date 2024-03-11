@@ -36,7 +36,7 @@ fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 # val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
 check_val_every_n_epoch: 10 # 每几个epoch验证一次
 accelerator: 'gpu'
-devices: [1]
+devices: [0]
 batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
 per_gpu_batch_size: 20  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1

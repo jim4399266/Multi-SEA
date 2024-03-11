@@ -26,16 +26,16 @@ def get_args():
     #                     help='Use NVIDIA GPU acceleration')
     parser.add_argument('--image_path', type=str, default='../examples/16151663.jpg',
                         help='Input image path')
-    parser.add_argument('--txt', type=str, default='guitar',
+    parser.add_argument('--txt', type=str, default='two women',
                         help='Input text')
-    parser.add_argument('--head_fusion', type=str, default='max',
+    parser.add_argument('--head_fusion', type=str, default='min',
                         help='How to fuse the attention heads for attention rollout. \
                         Can be mean/max/min')
     parser.add_argument('--discard_ratio', type=float, default=0.9,
                         help='How many of the lowest 14x14 attention paths should we discard')
     parser.add_argument('--category_index', type=int, default=None,
                         help='The category index for gradient rollout')
-    parser.add_argument('--attention_mode', type=str, default='t2i',
+    parser.add_argument('--attention_mode', type=str, default='i2t',
                         help='Attention mode. '
                              'Can be "i2t", "t2i", "i2i_p1", "i2i_p2", "t2t_p1", "t2t_p2"')
     args = parser.parse_args()
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     args = get_args()
     config = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
     args.use_cuda = True if config["accelerator"] == 'gpu' else False
-    device = 'cuda:' + str(config['devices'][0])     if args.use_cuda else 'cpu'
+    device = 'cuda:' + str(config['devices'][0]) if args.use_cuda else 'cpu'
     model = build_model(config)
     # model = torch.hub.load('facebookresearch/deit:main',
     #     'deit_tiny_patch16_224', pretrained=True)

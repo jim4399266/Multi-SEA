@@ -49,9 +49,8 @@ def rollout(attentions, discard_ratio, head_fusion):
     mask = mask / np.max(mask)
     return mask
 
-def rollout_cross(attentions, discard_ratio, head_fusion):
+def rollout_t2i_cross(attentions, discard_ratio, head_fusion):
     mask_list = []
-    # result = torch.eye(attentions[0].size(-1))
     with torch.no_grad():
         for attention in attentions:
             attention = attention.unsqueeze(0)
@@ -90,6 +89,56 @@ def rollout_cross(attentions, discard_ratio, head_fusion):
 
     # mask = mask_list[-1, 0, 1:]
     mask = mask_list[:, 0, 1:]
+
+    # In case of 224x224 image, this brings us from 196 to 14
+    width = int(mask.size(-1) ** 0.5)
+    mask = mask.reshape(-1, width, width).numpy()
+    mask = mask / np.max(mask)
+    return mask
+
+def rollout_i2t_cross(attentions, discard_ratio, head_fusion):
+    mask_list = []
+    with torch.no_grad():
+        for attention in attentions:
+            attention = attention.unsqueeze(0)
+            if head_fusion == "mean":
+                attention_heads_fused = attention.mean(axis=1)
+            elif head_fusion == "max":
+                attention_heads_fused = attention.max(axis=1)[0]
+            elif head_fusion == "min":
+                attention_heads_fused = attention.min(axis=1)[0]
+            else:
+                raise "Attention head fusion type Not supported"
+
+
+            # I = torch.eye(attention_heads_fused.size(-1))
+            # # 将attention矩阵中对角线得分+1，再归一化
+            # a = (attention_heads_fused + 1.0 * I) / 2
+            # b = a / a.sum(dim=-1)
+            b = attention_heads_fused.norm(p=1, dim=1, keepdim=True)
+            c = attention_heads_fused / b
+            #TODO 修改i2t部分
+            # Drop the lowest attentions, but
+            # don't drop the class token
+            # 去除不相关的部分
+            flat = c.view(c.size(0), -1)
+            # 去除不相关的部分
+            _, indices = flat.topk(int(flat.size(-1) * discard_ratio), -1, False)
+            # 把最前面的cls位置留出
+            indices = indices[indices != 0]
+            flat[0, indices] = 0
+
+            mask_list.append(c)
+            b = torch.isnan(c).nonzero()
+            # mask_list.append(result / result.norm(p=1, dim=1, keepdim=True))
+
+
+    # Look at the total attention between the class token,
+    # and the image patches
+    # mask = result[0, 0, 1:]
+    mask_list = torch.cat(mask_list, dim=0)
+    b = torch.isnan(mask_list).nonzero()
+    mask = mask_list[:, 1:, 0]
 
     # In case of 224x224 image, this brings us from 196 to 14
     width = int(mask.size(-1) ** 0.5)
@@ -182,8 +231,10 @@ class VITAttentionRollout():
             # output = self.model.predict_step(input_tensor, batch_idx=None)
             output = self.trainer.predict(self.model, data_loader)
             attention = eval(f'self.{mode}_attentions')
-        if mode == 't2i' or mode == 'i2t':
-            mask = rollout_cross(attention, self.discard_ratio, self.head_fusion)
+        if mode == 't2i':
+            mask = rollout_t2i_cross(attention, self.discard_ratio, self.head_fusion)
+        elif mode == 'i2t':
+            mask = rollout_i2t_cross(attention, self.discard_ratio, self.head_fusion)
         else:
             mask = rollout(attention, self.discard_ratio, self.head_fusion)
         return mask
