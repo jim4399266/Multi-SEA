@@ -1,15 +1,17 @@
 from typing import List, Union
 
 from .model_retrieval import (
+    RetrievalModule,
     RetrievalModuleWithQueue,
     RetrievalModuleWithQueue_1,
     RetrievalModuleWithDoubleQueue,
-    RetrievalModuleWithQueueShared
+    RetrievalModuleWithQueueShared,
+    RetrievalModuleWithQueueContrast1
 )
 
 _models = {
     # "baseline": RetrievalModule,
-    # "aformer":RetrievalModule,
+    "aformer4_swiglu":RetrievalModule,
     "aformer_queue":RetrievalModuleWithQueue,
     "aformer_swiglu_queue":RetrievalModuleWithQueue,
     "aformer_swiglu_double_queue_new":RetrievalModuleWithDoubleQueue,
@@ -17,6 +19,7 @@ _models = {
     "aformer3_swiglu_queue_new":RetrievalModuleWithQueue_1,
     "aformer4_swiglu_queue_new":RetrievalModuleWithQueue_1,
     "aformer4_swiglu_queue_shared":RetrievalModuleWithQueueShared,
+    "aformer4_swiglu_queue_contrast1":RetrievalModuleWithQueueContrast1,
 }
 
 def build_model(config):
