@@ -6,7 +6,8 @@ from .model_retrieval import (
     RetrievalModuleWithQueue_1,
     RetrievalModuleWithDoubleQueue,
     RetrievalModuleWithQueueShared,
-    RetrievalModuleWithQueueContrast1
+    RetrievalModuleWithQueueContrast1,
+    RetrievalModuleWithQueueContrast2
 )
 
 _models = {
@@ -20,6 +21,7 @@ _models = {
     "aformer4_swiglu_queue_new":RetrievalModuleWithQueue_1,
     "aformer4_swiglu_queue_shared":RetrievalModuleWithQueueShared,
     "aformer4_swiglu_queue_contrast1":RetrievalModuleWithQueueContrast1,
+    "aformer4_swiglu_queue_contrast2":RetrievalModuleWithQueueContrast2,
 }
 
 def build_model(config):

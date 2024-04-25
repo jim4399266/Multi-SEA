@@ -13,8 +13,8 @@ log_dir: "../logs_flickr30k"
 #log_dir: "/root/tf-logs"
 test_checkpoints_dir: ""
 checkpoint: ''
-arch: 'aformer4_swiglu'
-desc: 'flickr30k，对比测试3-1:没有队列下的不同batch size'
+arch: 'aformer4_swiglu_queue_contrast2'
+desc: 'flickr30k，对比测试2:SwiFFN与FFN'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -23,7 +23,7 @@ shuffle: True # 训练集是否打乱
 task_name: {'irtr': 1}
 get_recall_metric: True
 top_k: 64
-queue_size: -1
+queue_size: 500
 distill: False
 momentum: 0.995
 alpha: 0.4
@@ -36,9 +36,9 @@ fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 # val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
 check_val_every_n_epoch: 10 # 每几个epoch验证一次
 accelerator: 'gpu'
-devices: [6,7]
+devices: [0]
 batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
-per_gpu_batch_size: 5  # you should define this manually with per_gpu_batch_size=#
+per_gpu_batch_size: 20  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
 pin_memory: True
 num_workers: 8
