@@ -26,8 +26,7 @@ from .model_base import BaseModule
 from .AFormer2 import AFormer, Pooler, Swish
 from .AFormer3 import AFormerWithAug
 from .AFormer4 import AFormerShared
-from .AFormer_contrast import AFormerContrast2
-from .AFormer_contrast3 import AFormerContrast3
+
 
 class RetrievalModule(BaseModule):
     '''
