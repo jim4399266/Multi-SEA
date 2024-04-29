@@ -65,9 +65,10 @@ def train_irtr(pl_module, batch):
     '''没有添加负样本队列
     '''
     with torch.no_grad():
-        pl_module.temp.clamp_(0.1, 1.5)
-    alpha = pl_module.hparams.config['cur_alpha']
+        pl_module.temp.clamp_(0.1, 3.0)
+        pl_module.alpha.clamp_(0.2, 0.8)
 
+    cur_alpha = pl_module.hparams.config['cur_alpha']
     # 获得预训练模型输出的特征
     idx = batch['image_index'].view(-1, 1)
     image_feats, image_embeds, image_atts = pl_module.encoding_image(batch)
@@ -75,8 +76,8 @@ def train_irtr(pl_module, batch):
 
     sim_targets = torch.eye(len(image_feats), device=pl_module.device, dtype=torch.long)
 
-    sim_i2t = image_feats @ text_feats.t()
-    sim_t2i = text_feats @ image_feats.t()
+    sim_i2t = image_feats @ text_feats.t() / pl_module.temp
+    sim_t2i = text_feats @ image_feats.t() / pl_module.temp
 
     loss_i2t = -torch.sum(F.log_softmax(sim_i2t, dim=1) * sim_targets, dim=1).mean()
     loss_t2i = -torch.sum(F.log_softmax(sim_t2i, dim=1) * sim_targets, dim=1).mean()
@@ -91,10 +92,9 @@ def train_irtr(pl_module, batch):
             mask = torch.eq(idx, idxs.t())
             image_feats_world = concat_all_gather(image_feats, pl_module.trainer.world_size)
             text_feats_world = concat_all_gather(text_feats, pl_module.trainer.world_size)
-            # sim_i2t = image_feats @ text_feats_world.t() / pl_module.temp
-            # sim_t2i = text_feats @ image_feats_world.t() / pl_module.temp
-            sim_i2t = image_feats @ text_feats_world.t()
-            sim_t2i = text_feats @ image_feats_world.t()
+            sim_i2t = image_feats @ text_feats_world.t() / pl_module.temp
+            sim_t2i = text_feats @ image_feats_world.t() / pl_module.temp
+
 
             weights_i2t = F.softmax(sim_i2t, dim=1)
             weights_i2t.masked_fill_(mask, 0)
@@ -176,7 +176,8 @@ def train_irtr(pl_module, batch):
         attention_mask=text_attention_mask,
         encoder_hidden_states=image_hidden_states,
         encoder_attention_mask=image_attention_mask,
-        mode='t2i'
+        mode='t2i',
+        output_hidden_states=True,
     )
 
     output_i2t = pl_module.aformer(
@@ -184,11 +185,15 @@ def train_irtr(pl_module, batch):
         attention_mask=image_attention_mask,
         encoder_hidden_states=text_hidden_states,
         encoder_attention_mask=text_attention_mask,
-        mode='i2t'
+        mode='i2t',
+        output_hidden_states=True,
     )
+    itm_labels = itm_labels.repeat(2)
+    t2i_embedding = torch.cat([output_t2i.hidden_states[-3][:,0], output_t2i.hidden_states[-1][:,0]])   # 96,768
+    i2t_embedding = torch.cat([output_i2t.hidden_states[-3][:,0], output_i2t.hidden_states[-1][:,0]])
 
-    t2i_embedding = output_t2i.last_hidden_state[:, 0]
-    i2t_embedding = output_i2t.last_hidden_state[:, 0]
+    # t2i_embedding = output_t2i.last_hidden_state[:, 0]
+    # i2t_embedding = output_i2t.last_hidden_state[:, 0]
     # t2i_embedding = output_t2i.pooler_output
     # i2t_embedding = output_i2t.pooler_output
     vl_t2i = pl_module.itm_head(t2i_embedding)
@@ -202,13 +207,8 @@ def train_irtr(pl_module, batch):
     pl_module.log(f"train/itm_loss", loss_itm)
     # pl_module.log(f"train_irtr_loss/irtr/triplet_loss", loss_triplet)
     pl_module.log(f"train/total_loss", irtr_loss)
-
-    # pl_module.log(f"t/loss_i2t", loss_i2t)
-    # pl_module.log(f"t/loss_t2i", loss_t2i)
-    # pl_module.log(f"t/loss_i2i_IM_g2l", loss_i2i_IM_g2l)
-    # pl_module.log(f"t/loss_t2t_IM_g2l", loss_t2t_IM_g2l)
-    # pl_module.log(f"t/loss_t2t", loss_t2t)
-    # pl_module.log(f"t/loss_i2i", loss_i2i)
+    pl_module.log(f"train/temp", pl_module.temp)
+    pl_module.log(f"train/alpha", pl_module.alpha)
     return irtr_loss
 
 def train_irtr_with_queue(pl_module, batch):

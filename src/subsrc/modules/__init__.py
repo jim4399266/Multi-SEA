@@ -8,7 +8,7 @@ from .model_retrieval import (
     RetrievalModuleWithQueueShared,
     RetrievalModuleWithQueueContrast1,
     RetrievalModuleWithQueueContrast2,
-    RetrievalModuleWithQueueContrast3
+    RetrievalModuleWithQueueContrast3,
 )
 
 _models = {

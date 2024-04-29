@@ -13,8 +13,8 @@ log_dir: "../logs"
 #log_dir: "/root/tf-logs"
 test_checkpoints_dir: "/home/tzj/codes/my_retrieval_model/outputs/coco_Aformer4_SwiGLU_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size500_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_0"
 checkpoint: ''
-arch: 'Aformer4_SwiGLU_queue_new'
-desc: 'mscoco:将Agent attention替换cross attention，版本8-2：去除dwc卷积，精排2级输出，分离self attn和ffn'
+arch: 'Aformer3_SwiGLU_queue_new'
+desc: 'mscoco:将Agent attention + SwiFFN，精排2级输出，分离self attn和ffn'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -23,12 +23,12 @@ shuffle: True # 训练集是否打乱
 task_name: {'irtr': 1}
 get_recall_metric: True
 top_k: 64
-queue_size: 500
+queue_size: 1000
 distill: False
 momentum: 0.995
 alpha: 0.4
 negative_all_rank: True
-coco_scale: ['1k'] #测试集使用1k，5k还是都用
+coco_scale: ['5k'] #测试集使用1k，5k还是都用
 
 # ----------------------  Lightning Trainer Setting  ------------------------------
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
@@ -36,7 +36,7 @@ fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 # val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
 check_val_every_n_epoch: 10 # 每几个epoch验证一次
 accelerator: 'gpu'
-devices: [0,1]
+devices: [0,1,2,6]
 batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
 per_gpu_batch_size: 20  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1

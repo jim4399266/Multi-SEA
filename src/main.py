@@ -162,8 +162,8 @@ def main(args, config):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco_baseline.yaml')
-    # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
-    parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
+    parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
+    # parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
     parser.add_argument('--devices', default='')
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--test_only', action='store_true')
