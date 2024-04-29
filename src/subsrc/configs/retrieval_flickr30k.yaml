@@ -13,8 +13,8 @@ log_dir: "../logs_flickr30k"
 #log_dir: "/root/tf-logs"
 test_checkpoints_dir: ""
 checkpoint: ''
-arch: 'aformer4_swiglu_queue_contrast3'
-desc: 'flickr30k，对比测试3:没有Agent attention'
+arch: 'aformer4_swiglu_queue_contrast4'
+desc: 'flickr30k，对比测试4:没有Agent attention和Swiffn'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1

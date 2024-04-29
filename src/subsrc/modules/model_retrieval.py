@@ -28,6 +28,7 @@ from .AFormer3 import AFormerWithAug
 from .AFormer4 import AFormerShared
 from .AFormer_contrast import AFormerContrast2
 from .AFormer_contrast3 import AFormerContrast3
+from .AFormer_contrast4 import AFormerContrast4
 
 class RetrievalModule(BaseModule):
     '''
@@ -2499,3 +2500,21 @@ class RetrievalModuleWithQueueContrast3(RetrievalModuleWithQueue_1):
         aformer_config.beta = config['beta']
         aformer_config.attention_probs_dropout_prob = config['drop_rate']
         self.aformer = AFormerContrast3(aformer_config)
+
+class RetrievalModuleWithQueueContrast4(RetrievalModuleWithQueue_1):
+    '''
+    不使用Agent attention和SwiFFN
+    '''
+
+    def __init__(self, config):
+        super().__init__(config)
+        aformer_config = BertConfig.from_json_file(config['aformer_config_path'])
+        aformer_config.num_hidden_layers = config['num_top_layer']
+        aformer_config.num_attention_heads = config['num_heads']
+        aformer_config.hidden_size = config['hidden_size']
+        aformer_config.encoder_width = config['hidden_size']
+        aformer_config.intermediate_size = config['hidden_size'] * config['mlp_ratio']
+        aformer_config.attention_groups = config['attention_groups']
+        aformer_config.beta = config['beta']
+        aformer_config.attention_probs_dropout_prob = config['drop_rate']
+        self.aformer = AFormerContrast4(aformer_config)
