@@ -24,7 +24,7 @@ shuffle: True # 训练集是否打乱
 task_name: {'irtr': 1}
 get_recall_metric: True
 top_k: 64
-queue_size: 1000
+queue_size: 500
 distill: False
 momentum: 0.995
 alpha: 0.4
