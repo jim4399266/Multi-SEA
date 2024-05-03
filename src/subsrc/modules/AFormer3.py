@@ -213,7 +213,7 @@ class AgentAttention(nn.Module):
         # agent_tokens = self.transpose_for_scores(self.pooler(query_layer.transpose(1, 2).reshape(bs, seq_len, dim)))
         ## TODO agent_tokens 的采样方法
         q = query_layer.transpose(1, 2).reshape(bs, seq_len, dim)
-        agent_tokens = F.interpolate(q.unsqueeze(0), size=(self.agent_num, dim), mode='bilinear', align_corners=False).squeeze()
+        agent_tokens = F.interpolate(q.unsqueeze(0), size=(self.agent_num, dim), mode='bilinear', align_corners=False).squeeze(0)
         agent_tokens = self.transpose_for_scores(agent_tokens)
 
         ## Step 1, Agent Aggregation.  X = A @ K^T  @ V :

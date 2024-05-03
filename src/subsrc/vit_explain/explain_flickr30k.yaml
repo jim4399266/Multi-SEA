@@ -1,0 +1,124 @@
+# 常规设置
+datasets: ['flickr30k']
+data_root: "/home/tzj/datas/flickr30k_karpathy_prepared"
+output_dir: "../outputs_flickr30k"
+log_dir: "../logs_flickr30k"
+
+# set pretrained as a file path or an url
+#pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
+
+#datasets: ['coco']
+#data_root: "/root/autodl-tmp/datas/flickr30k_karpathy_prepared"
+#output_dir: "/root/autodl-tmp/outputs_flickr30k"
+#log_dir: "/root/tf-logs"
+test_checkpoints_dir: ""
+checkpoint: '/home/tzj/codes/my_retrieval_model/outputs_flickr30k/flickr30k_Aformer4_SwiGLU_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size500_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_0/step11400-val_score539.2400.ckpt'
+arch: 'Aformer4_SwiGLU_queue_new'
+desc: ''
+seed: 42
+train_dataset_len: -1
+val_dataset_len: -1
+test_dataset_len: -1
+shuffle: True # 训练集是否打乱
+task_name: {'irtr': 1}
+get_recall_metric: True
+top_k: 64
+queue_size: 500
+distill: False
+momentum: 0.995
+alpha: 0.4
+negative_all_rank: True
+coco_scale: [''] #测试集使用1k，5k还是都用
+
+# ----------------------  Lightning Trainer Setting  ------------------------------
+num_sanity_val_steps: 0 # 在开始前取 n 个val batches
+fast_dev_run: False # 快速检验，取 n 个train, val, test batches
+# val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
+check_val_every_n_epoch: 10 # 每几个epoch验证一次
+accelerator: 'gpu'
+devices: [0]
+batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
+per_gpu_batch_size: 20  # you should define this manually with per_gpu_batch_size=#
+num_nodes: 1
+pin_memory: True
+num_workers: 8
+precision: 32
+max_grad_norm: 1.
+max_epoch: 200
+max_steps: -1
+warmup_steps: 0.15
+
+# ----------------------  Image Setting  ----------------------
+image_encoder_config:
+  vit_name: 'ViT-B-16'
+#  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
+  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+  image_size: 224 # 调整后的图片像素
+  patch_size: 16 # 送入vit的图片块的像素
+  # 预处理图片的模型（将图片处理为image_size * image_size）
+#  train_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
+#  val_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
+  train_transform_keys: ["clip"]
+  val_transform_keys: ["clip"]
+
+
+# ----------------------  Text Setting  ----------------------
+text_encoder_config:
+#  tokenizer_name: 'deberta-v3-large-mnli'
+#  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-large-mnli-fever-anli-ling-wanli'
+#  tokenizer_name: 'electra-large'
+#  tokenizer: '/home/tzj/pretrained_models/en-electra-large-discriminator'
+
+#  tokenizer_name: 'xlm-roberta-large'
+#  tokenizer: '/home/tzj/pretrained_models/xlm-roberta-large'
+#  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
+  tokenizer_name: 'roberta-base'
+#  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
+  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+#  tokenizer_name: 'roberta-large'
+#  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
+
+  max_text_len: 40
+  whole_word_masking: False # note that whole_word_masking does not work for RoBERTa
+  mlm_prob: 0.15 # mlm遮罩比例
+
+# ----------------------  Transformer Setting  ----------------------
+aformer_config_path: '../configs/aformer_config.json'
+num_top_layer: 4  # 融合模块的层数
+hidden_size: 768
+attention_groups: False
+beta: 1.0
+num_heads: 12 # 注意力的head数量
+## mlp_ratio = 1 # 中间层的维度：hidden_size * mlp_ratio
+mlp_ratio: 4 # 中间层的维度：hidden_size * mlp_ratio
+drop_rate: 0.1 # dropout
+
+# ----------------------  Optimizer Setting  ----------------------
+optimizer:
+  optim_type: 'adamw'
+  init_lr: 1e-5
+  #learning_rate: 1e-5,
+  min_lr: 0
+  eps: 1e-8
+  betas: (0.9, 0.98)
+  weight_decay: 0.05
+#  decay_power: 1
+#  max_epoch: 6,
+#  max_steps: -1,
+  lr_mult_head: 5 # multiply lr for downstream heads
+  lr_mult_cross_modal: 5  # multiply lr for the cross-modal module
+
+#scheduler: 'linear'
+
+scheduler: 'cosine'
+num_cycles: 0.3
+#scheduler: {
+#  sched: cosine,
+#  lr: 1e-5,
+#  min_lr: 1e-6,
+#  decay_rate: 1,
+#  warmup_lr: 1e-5,
+#  warmup_epochs: 1,
+#  cooldown_epochs: 0,
+#}
