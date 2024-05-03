@@ -148,7 +148,10 @@ def main(args, config):
     elif args.evaluate:
         trainer.validate(model, datamodule=dm)
     else:
-        trainer.fit(model, datamodule=dm)
+        if config['checkpoint'] != '':
+            trainer.fit(model, datamodule=dm, ckpt_path=config['checkpoint'])
+        else:
+            trainer.fit(model, datamodule=dm)
         weight_paths = list(trainer.checkpoint_callback.best_k_models.keys())
         # weight_paths = list(Path(checkpoint_callback.dirpath).rglob('*.[pc][tk][hp]*'))
         # weight_paths = list(Path('/home/tzj/codes/my_clip/outputs/'
@@ -162,8 +165,8 @@ def main(args, config):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco_baseline.yaml')
-    parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
-    # parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
+    # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
+    parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
     parser.add_argument('--devices', default='')
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--test_only', action='store_true')

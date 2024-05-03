@@ -11,10 +11,11 @@ log_dir: "../logs"
 #data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
 #output_dir: "/root/autodl-tmp/outputs"
 #log_dir: "/root/tf-logs"
-test_checkpoints_dir: "/home/tzj/codes/my_retrieval_model/outputs/coco_Aformer4_SwiGLU_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size500_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_0"
+test_checkpoints_dir: ""
+#checkpoint: '/home/tzj/codes/my_retrieval_model/outputs/coco_Aformer3_SwiGLU_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size1000_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_2/step18880-val_score450.4573.ckpt'
 checkpoint: ''
 arch: 'Aformer3_SwiGLU_queue_new'
-desc: 'mscoco:将Agent attention + SwiFFN，精排2级输出，分离self attn和ffn'
+desc: 'mscoco:对比测试4-分层对齐:输出后3层'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -36,7 +37,7 @@ fast_dev_run: False # 快速检验，取 n 个train, val, test batches
 # val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
 check_val_every_n_epoch: 10 # 每几个epoch验证一次
 accelerator: 'gpu'
-devices: [0,1,2,6]
+devices: [0]
 batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
 per_gpu_batch_size: 20  # you should define this manually with per_gpu_batch_size=#
 num_nodes: 1
