@@ -71,15 +71,18 @@ def rollout_t2i_cross(attentions, discard_ratio, head_fusion):
             _, indices = flat.topk(int(flat.size(-1) * discard_ratio), -1, False)
             # 把最前面的cls位置留出
             indices = indices[indices != 0]
-            flat[0, indices] = 0
 
-            # I = torch.eye(attention_heads_fused.size(-1))
-            # # 将attention矩阵中对角线得分+1，再归一化
-            # a = (attention_heads_fused + 1.0 * I) / 2
-            # b = a / a.sum(dim=-1)
+            flat[0, indices] = 0
             I = torch.eye(attentions[0].size(-1))
             result = torch.matmul(attention_heads_fused, I)
             mask_list.append(result / result.norm(p=1, dim=-1, keepdim=True))
+
+
+            # # flat[0, indices] = -1e10
+            # I = torch.eye(attentions[0].size(-1))
+            # result = torch.matmul(attention_heads_fused, I)
+            # r = torch.nn.functional.softmax(result * 200, dim=-1)
+            # mask_list.append(r)
 
 
     # Look at the total attention between the class token,

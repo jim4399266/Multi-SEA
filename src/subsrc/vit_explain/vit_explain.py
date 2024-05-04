@@ -9,6 +9,7 @@ import cv2
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoTokenizer
 import pytorch_lightning as pl
+from pathlib import Path
 
 from vit_rollout import VITAttentionRollout, PredictBaseDataset
 from vit_grad_rollout import VITAttentionGradRollout
@@ -24,18 +25,18 @@ def get_args():
 
     # parser.add_argument('--use_cuda', action='store_true', default=False,
     #                     help='Use NVIDIA GPU acceleration')
-    parser.add_argument('--image_path', type=str, default='../examples/16151663.jpg',
+    parser.add_argument('--image_path', type=str, default='../examples/5495428438.jpg',
                         help='Input image path')
-    parser.add_argument('--txt', type=str, default='two women',
+    parser.add_argument('--txt', type=str, default='A group of people',
                         help='Input text')
     parser.add_argument('--head_fusion', type=str, default='min',
                         help='How to fuse the attention heads for attention rollout. \
                         Can be mean/max/min')
-    parser.add_argument('--discard_ratio', type=float, default=0.9,
+    parser.add_argument('--discard_ratio', type=float, default=0.8,
                         help='How many of the lowest 14x14 attention paths should we discard')
     parser.add_argument('--category_index', type=int, default=None,
                         help='The category index for gradient rollout')
-    parser.add_argument('--attention_mode', type=str, default='i2t',
+    parser.add_argument('--attention_mode', type=str, default='t2i',
                         help='Attention mode. '
                              'Can be "i2t", "t2i", "i2i_p1", "i2i_p2", "t2t_p1", "t2t_p2"')
     args = parser.parse_args()
@@ -98,9 +99,9 @@ if __name__ == '__main__':
         mask = attention_rollout(data_loader, mode=args.attention_mode)
         np_img = np.array(img)[:, :, ::-1]
         for i, _mask in enumerate(mask, start=1):
-            name = "{}_attention_rollout_layer{}_{}_{:.3f}_{}:{}.png".format(
-            img_tag, i, args.attention_mode, args.discard_ratio, args.head_fusion, txt)
-
+            Path(img_tag).mkdir(parents=True, exist_ok=True)
+            name = "./{}/{}_attention_rollout_layer{}_{}_{:.3f}_{}.png".format(
+            img_tag, txt, i, args.attention_mode, args.discard_ratio, args.head_fusion)
             _mask = cv2.resize(_mask, (np_img.shape[1], np_img.shape[0]))
             _mask = show_mask_on_image(np_img, _mask)
             cv2.imwrite(name, _mask)
@@ -109,10 +110,9 @@ if __name__ == '__main__':
         print("Doing Gradient Attention Rollout")
         grad_rollout = VITAttentionGradRollout(model, discard_ratio=args.discard_ratio)
         mask = grad_rollout(data_loader, args.category_index)
-        name = "{}_grad_rollout_{}_{}_{:.3f}_{}.png".format(img_tag, args.attention_mode, args.category_index,
-            args.discard_ratio, args.head_fusion)
+        name = "{}_grad_rollout_{}_{}_{:.3f}_{}.png".format(img_tag, args.attention_mode, args.category_index, args.discard_ratio, args.head_fusion)
 
-
+    exit()
     # np_img = np.array(img)[:, :, ::-1]
     # mask = cv2.resize(mask, (np_img.shape[1], np_img.shape[0]))
     # mask = show_mask_on_image(np_img, mask)
