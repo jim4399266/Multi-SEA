@@ -100,9 +100,9 @@ def main(args, config):
     )
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='step')
     callbacks = [modelsummary_callback, checkpoint_callback, early_stop_callback, lr_callback]
-
-    dm = build_datamodule(config)
-    model = build_model(config)
+    #
+    # dm = build_datamodule(config)
+    # model = build_model(config)
 
     trainer = pl.Trainer(
         # resume_from_checkpoint=config['load_path'],
@@ -138,35 +138,44 @@ def main(args, config):
 
     )
 
+
     if args.test_only:
         weight_paths = list(sorted(Path(config['test_checkpoints_dir']).rglob('*.[pc][tk][hp]*')))
         for ckpt in weight_paths:
             print('---------------------------------------------')
             print(weight_paths)
+            checkpoint = torch.load(str(ckpt), map_location='cpu')
+            checkpoint_config = checkpoint['hyper_parameters']['config']
+            checkpoint_config['coco_scale'] = config['coco_scale']
+            dm = build_datamodule(checkpoint_config)
+            model = build_model(checkpoint_config)
             trainer.test(model, datamodule=dm, ckpt_path=str(ckpt))
 
-    elif args.evaluate:
-        trainer.validate(model, datamodule=dm)
     else:
-        if config['checkpoint'] != '':
-            trainer.fit(model, datamodule=dm, ckpt_path=config['checkpoint'])
+        dm = build_datamodule(config)
+        model = build_model(config)
+        if args.evaluate:
+            trainer.validate(model, datamodule=dm)
         else:
-            trainer.fit(model, datamodule=dm)
-        weight_paths = list(trainer.checkpoint_callback.best_k_models.keys())
-        # weight_paths = list(Path(checkpoint_callback.dirpath).rglob('*.[pc][tk][hp]*'))
-        # weight_paths = list(Path('/home/tzj/codes/my_clip/outputs/'
-        #                          'irtr_bs200_pbs50_epoch6_lr1e-05_is224_from_model_base/version_19/').rglob(
-        #     '*.[pc][tk][hp]*'))
-        print(weight_paths)
-        for ckpt in weight_paths:
-            trainer.test(model, datamodule=dm, ckpt_path=str(ckpt))
+            if config['checkpoint'] != '':
+                trainer.fit(model, datamodule=dm, ckpt_path=config['checkpoint'])
+            else:
+                trainer.fit(model, datamodule=dm)
+            weight_paths = list(trainer.checkpoint_callback.best_k_models.keys())
+            # weight_paths = list(Path(checkpoint_callback.dirpath).rglob('*.[pc][tk][hp]*'))
+            # weight_paths = list(Path('/home/tzj/codes/my_clip/outputs/'
+            #                          'irtr_bs200_pbs50_epoch6_lr1e-05_is224_from_model_base/version_19/').rglob(
+            #     '*.[pc][tk][hp]*'))
+            print(weight_paths)
+            for ckpt in weight_paths:
+                trainer.test(model, datamodule=dm, ckpt_path=str(ckpt))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco_baseline.yaml')
-    # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
-    parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
+    parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
+    # parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
     parser.add_argument('--devices', default='')
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--test_only', action='store_true')
