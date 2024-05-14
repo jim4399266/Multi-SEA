@@ -1120,7 +1120,13 @@ class RetrievalModuleWithQueue_1(BaseModule):
         self.test_step_outputs.clear()  # free memory
 
     def predict_step(self, batch: Any, batch_idx: int = 0, dataloader_idx: int = 0) -> Any:
-        score_val_i2t, score_val_t2i = self(batch, phase='predict')
+        image_feats, image_embeds, image_atts = self.encoding_image(batch)
+        text_feats, text_embeds, text_atts = self.encoding_text(batch)
+        vectors = [text_embeds, text_feats, text_atts, image_embeds, image_feats, image_atts]
+        score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, vectors)
+        return [score_val_i2t, score_val_t2i]
+
+        # score_val_i2t, score_val_t2i = self(batch, phase='predict')
 
 
 

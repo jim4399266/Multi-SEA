@@ -51,8 +51,10 @@ def rollout(attentions, discard_ratio, head_fusion):
 
 def rollout_t2i_cross(attentions, discard_ratio, head_fusion):
     mask_list = []
+
     with torch.no_grad():
         for attention in attentions:
+            # result = torch.eye(attentions[0].size(-1))
             attention = attention.unsqueeze(0)
             if head_fusion == "mean":
                 attention_heads_fused = attention.mean(axis=1)
@@ -73,9 +75,19 @@ def rollout_t2i_cross(attentions, discard_ratio, head_fusion):
             indices = indices[indices != 0]
 
             flat[0, indices] = 0
-            I = torch.eye(attentions[0].size(-1))
-            result = torch.matmul(attention_heads_fused, I)
-            mask_list.append(result / result.norm(p=1, dim=-1, keepdim=True))
+            # I = torch.zeros_like(attention_heads_fused)
+            # for i in range(attention_heads_fused.size(1)): I[:,i,i] = 1
+            # I = torch.eye(attentions[0].size(-1))
+
+            # a = (attention_heads_fused + 1.0 * I) / 2
+            # a = a / a.sum(dim=-1, keepdim=True)
+            # result = torch.matmul(a, result)
+            # mask_list.append(result)
+
+            result = attention_heads_fused / attention_heads_fused.norm(p=1, dim=-1, keepdim=True)
+            b = attention_heads_fused.norm(p=1, dim=-1, keepdim=True)
+            mask_list.append(result)
+            # mask_list.append(result / result.norm(p=1, dim=-1, keepdim=True))
 
 
             # # flat[0, indices] = -1e10
@@ -91,12 +103,13 @@ def rollout_t2i_cross(attentions, discard_ratio, head_fusion):
     mask_list = torch.cat(mask_list, dim=0)
 
     # mask = mask_list[-1, 0, 1:]
-    mask = mask_list[:, 0, 1:]
-
+    mask = mask_list[:, 0, 1:].numpy()
+    mask = mask / np.max(mask, axis=-1, keepdims=True)
     # In case of 224x224 image, this brings us from 196 to 14
-    width = int(mask.size(-1) ** 0.5)
-    mask = mask.reshape(-1, width, width).numpy()
-    mask = mask / np.max(mask)
+    width = int(mask.shape[-1] ** 0.5)
+    mask = mask.reshape(-1, width, width)
+
+    # mask = mask / np.max(mask)
     return mask
 
 def rollout_i2t_cross(attentions, discard_ratio, head_fusion):
@@ -152,6 +165,7 @@ class PredictBaseDataset(Dataset):
     def __init__(self, text, image, transform, tokenizer):
         super(PredictBaseDataset, self).__init__()
         self.image_tensor = transform(image).unsqueeze(0)
+        self.text = text
         self.encodings = tokenizer(
             text,
             padding='max_length',
@@ -166,6 +180,7 @@ class PredictBaseDataset(Dataset):
         # 在训练时，只需返回一张图片和一段文本的图文对
         # 测试时，返回一张图片对应的一组文本
         ret = dict()
+        ret['text'] = self.text
         ret['image'] = self.image_tensor
         ret['text_encodings'] = self.encodings
         return ret

@@ -12,7 +12,10 @@ log_dir: "../logs_flickr30k"
 #output_dir: "/root/autodl-tmp/outputs_flickr30k"
 #log_dir: "/root/tf-logs"
 test_checkpoints_dir: ""
-checkpoint: '/home/tzj/codes/my_retrieval_model/outputs_flickr30k/flickr30k_Aformer4_SwiGLU_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size500_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_3/step10200-val_score539.8400.ckpt'
+# 最高
+#checkpoint: '/home/tzj/codes/my_retrieval_model/outputs_flickr30k/flickr30k_Aformer4_SwiGLU_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size500_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_3/step10200-val_score539.8400.ckpt'
+# 没有第二阶段
+checkpoint: '/home/tzj/codes/my_retrieval_model/outputs_flickr30k/flickr30k_Aformer4_SwiGLU_queue_contrast1_Asize768_beta1.0_bs500_pbs20_queue_size500_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_0/step12000-val_score529.2400.ckpt'
 arch: 'Aformer4_SwiGLU_queue_new'
 desc: ''
 seed: 42

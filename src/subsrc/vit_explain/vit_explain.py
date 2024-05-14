@@ -25,14 +25,14 @@ def get_args():
 
     # parser.add_argument('--use_cuda', action='store_true', default=False,
     #                     help='Use NVIDIA GPU acceleration')
-    parser.add_argument('--image_path', type=str, default='../examples/5495428438.jpg',
+    parser.add_argument('--image_path', type=str, default='../examples/6425829479.jpg',
                         help='Input image path')
-    parser.add_argument('--txt', type=str, default='A group of people',
+    parser.add_argument('--txt', type=str, default='guitars and a trumpet',
                         help='Input text')
     parser.add_argument('--head_fusion', type=str, default='min',
                         help='How to fuse the attention heads for attention rollout. \
                         Can be mean/max/min')
-    parser.add_argument('--discard_ratio', type=float, default=0.8,
+    parser.add_argument('--discard_ratio', type=float, default=0.9,
                         help='How many of the lowest 14x14 attention paths should we discard')
     parser.add_argument('--category_index', type=int, default=None,
                         help='The category index for gradient rollout')
@@ -99,8 +99,8 @@ if __name__ == '__main__':
         mask = attention_rollout(data_loader, mode=args.attention_mode)
         np_img = np.array(img)[:, :, ::-1]
         for i, _mask in enumerate(mask, start=1):
-            Path(img_tag).mkdir(parents=True, exist_ok=True)
-            name = "./{}/{}_attention_rollout_layer{}_{}_{:.3f}_{}.png".format(
+            Path(img_tag + '_').mkdir(parents=True, exist_ok=True)
+            name = "./{}_/{}_attention_rollout_layer{}_{}_{:.3f}_{}.png".format(
             img_tag, txt, i, args.attention_mode, args.discard_ratio, args.head_fusion)
             _mask = cv2.resize(_mask, (np_img.shape[1], np_img.shape[0]))
             _mask = show_mask_on_image(np_img, _mask)
