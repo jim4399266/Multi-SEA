@@ -25,14 +25,14 @@ def get_args():
 
     # parser.add_argument('--use_cuda', action='store_true', default=False,
     #                     help='Use NVIDIA GPU acceleration')
-    parser.add_argument('--image_path', type=str, default='../examples/6425829479.jpg',
+    parser.add_argument('--image_path', type=str, default='./6425829479/6425829479.jpg',
                         help='Input image path')
-    parser.add_argument('--txt', type=str, default='guitars and a trumpet',
+    parser.add_argument('--txt', type=str, default='Mexican mariachi band',
                         help='Input text')
     parser.add_argument('--head_fusion', type=str, default='min',
                         help='How to fuse the attention heads for attention rollout. \
                         Can be mean/max/min')
-    parser.add_argument('--discard_ratio', type=float, default=0.9,
+    parser.add_argument('--discard_ratio', type=float, default=0.8,
                         help='How many of the lowest 14x14 attention paths should we discard')
     parser.add_argument('--category_index', type=int, default=None,
                         help='The category index for gradient rollout')
