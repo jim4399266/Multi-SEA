@@ -100,9 +100,7 @@ def main(args, config):
     )
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='step')
     callbacks = [modelsummary_callback, checkpoint_callback, early_stop_callback, lr_callback]
-    #
-    # dm = build_datamodule(config)
-    # model = build_model(config)
+
 
     trainer = pl.Trainer(
         # resume_from_checkpoint=config['load_path'],
@@ -137,7 +135,6 @@ def main(args, config):
         check_val_every_n_epoch=config.get('check_val_every_n_epoch', None),
 
     )
-
 
     if args.test_only:
         weight_paths = list(sorted(Path(config['test_checkpoints_dir']).rglob('*.[pc][tk][hp]*')))
