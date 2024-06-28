@@ -590,13 +590,40 @@ class AFormerGateFeedForward(nn.Module):
 
         return self.ffn_norm(input_tensor + output_tensor)
 
+
+class AFormerCrossGateFeedForward(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.dense1 = nn.Linear(config.hidden_size, config.intermediate_size)
+        self.dense2 = nn.Linear(config.hidden_size, config.intermediate_size)
+        self.dense3 = nn.Linear(config.intermediate_size, config.hidden_size)
+        self.dense4 = nn.Linear(config.intermediate_size, config.hidden_size)
+
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.ffn_norm = RMSNorm(config.hidden_size)
+        # self.swish = Swish(config.beta)
+        self.swish = HSwish()
+
+    def forward(self, input_tensor):
+        hidden_states1 = self.swish(self.dense1(input_tensor))
+        hidden_states2 = self.dropout(self.dense2(input_tensor))
+        hidden_states3 = hidden_states1 * hidden_states2
+
+        output_tensor1 = self.dropout(self.dense3(hidden_states3))
+        output_tensor2 = self.swish(self.dense4(hidden_states2))
+
+        output_tensor = output_tensor1 * output_tensor2
+
+        return self.ffn_norm(input_tensor + output_tensor)
+
 class AFormerLayerExpert(torch.nn.Module):
     def __init__(self, config):
         super().__init__()
         self.self_attention = AFormerAttention(config, is_cross_attention=False)
         self.cross_attention = AFormerAgentAttention(config, is_cross_attention=True)
         # self.ffn = AFormerFeedForward(config)
-        self.ffn = AFormerGateFeedForward(config)
+        # self.ffn = AFormerGateFeedForward(config)
+        self.ffn = AFormerCrossGateFeedForward(config)
         self.chunk_size_feed_forward = 0
         self.seq_len_dim = 1
 

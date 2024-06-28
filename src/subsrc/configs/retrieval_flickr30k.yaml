@@ -14,7 +14,7 @@ log_dir: "../logs_flickr30k"
 test_checkpoints_dir: ""
 checkpoint: ''
 arch: 'aformer3_swiglu_queue_new'
-desc: 'flickr30k，版本11-2:修改Swiffn，增加一个gate，换成Hard Swish'
+desc: 'flickr30k，版本11-3:修改Swiffn，增加一个cross gate'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
