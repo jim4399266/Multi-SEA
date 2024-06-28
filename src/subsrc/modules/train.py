@@ -764,16 +764,16 @@ def train_irtr_with_queue_multi_out(pl_module, batch):
         mode='i2t',
         output_hidden_states=True,
     )
-    # 后1层输出
-    t2i_embedding = output_t2i.last_hidden_state[:, 0]
-    i2t_embedding = output_i2t.last_hidden_state[:, 0]
+    # 后2层输出
+    # t2i_embedding = output_t2i.last_hidden_state[:, 0]
+    # i2t_embedding = output_i2t.last_hidden_state[:, 0]
 
     # 后1层输出
-    # itm_labels = itm_labels.repeat(3)
+    itm_labels = itm_labels.repeat(2)
     # t2i_embedding = torch.cat([state[:,0] for state in output_t2i.hidden_states[2:]])
     # i2t_embedding = torch.cat([state[:,0] for state in output_i2t.hidden_states[2:]])
-    # t2i_embedding = torch.cat([output_t2i.hidden_states[-3][:,0], output_t2i.hidden_states[-1][:,0]])   # 96,768
-    # i2t_embedding = torch.cat([output_i2t.hidden_states[-3][:,0], output_i2t.hidden_states[-1][:,0]])
+    t2i_embedding = torch.cat([output_t2i.hidden_states[-3][:,0], output_t2i.hidden_states[-1][:,0]])   # 96,768
+    i2t_embedding = torch.cat([output_i2t.hidden_states[-3][:,0], output_i2t.hidden_states[-1][:,0]])
 
     # t2i_embedding = output_t2i.last_hidden_state[:, 0]
     # i2t_embedding = output_i2t.last_hidden_state[:, 0]
