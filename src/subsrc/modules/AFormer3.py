@@ -11,7 +11,7 @@ from torch import Tensor, device, dtype, nn
 import math
 
 '''
-Norm后置测试，添加agent attention，self attention与ffn 分离
+Norm后置测试，添加agent attention，self attention与ffn 分离，使用AFormerGateFeedForward
 '''
 class Swish(nn.Module):
     def __init__(self, beta: float=1.0):
@@ -21,6 +21,16 @@ class Swish(nn.Module):
     def forward(self, input: Tensor) -> Tensor:
         return input * (1 / (1 + torch.exp(-self.beta * input)))
 
+class HSwish(nn.Module):
+    def __init__(self, a_max: float=1.0, a_min: float=0.0, add: float=3.0, divide: float=6.0) -> None:
+        super().__init__()
+        self.a_max = a_max
+        self.a_min = a_min
+        self.add = add
+        self.divide = divide
+
+    def forward(self, input: Tensor) -> Tensor:
+        return input * torch.clip(input + self.add, max=self.a_max, min=self.a_min) / self.divide
 class RMSNorm(torch.nn.Module):
     def __init__(self, dim: int, eps: float = 1e-5):
         """
@@ -558,12 +568,34 @@ class AFormerFeedForward(nn.Module):
         # hidden_states = self.swish(self.dense1(input_tensor)) * self.dense3(input_tensor)
         return self.ffn_norm(input_tensor + self.dropout(self.dense2(hidden_states)))
 
+class AFormerGateFeedForward(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.dense1 = nn.Linear(config.hidden_size, config.intermediate_size)
+        self.dense2 = nn.Linear(config.hidden_size, config.intermediate_size)
+        self.dense3 = nn.Linear(config.intermediate_size, config.hidden_size)
+        self.dense4 = nn.Linear(config.intermediate_size, config.hidden_size)
+
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.ffn_norm = RMSNorm(config.hidden_size)
+        self.swish = Swish(config.beta)
+
+    def forward(self, input_tensor):
+        hidden_states = self.swish(self.dense1(input_tensor))
+        hidden_states = hidden_states * self.dropout(self.dense2(input_tensor))
+
+        output_tensor = self.swish(self.dense3(hidden_states))
+        output_tensor = output_tensor * self.dropout(self.dense4(hidden_states))
+
+        return self.ffn_norm(input_tensor + output_tensor)
+
 class AFormerLayerExpert(torch.nn.Module):
     def __init__(self, config):
         super().__init__()
         self.self_attention = AFormerAttention(config, is_cross_attention=False)
         self.cross_attention = AFormerAgentAttention(config, is_cross_attention=True)
-        self.ffn = AFormerFeedForward(config)
+        # self.ffn = AFormerFeedForward(config)
+        self.ffn = AFormerGateFeedForward(config)
         self.chunk_size_feed_forward = 0
         self.seq_len_dim = 1
 

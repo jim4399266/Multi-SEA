@@ -13,8 +13,8 @@ log_dir: "../logs_flickr30k"
 #log_dir: "/root/tf-logs"
 test_checkpoints_dir: ""
 checkpoint: ''
-arch: 'aformer4_swiglu_queue_contrast4'
-desc: 'flickr30k，对比测试4:没有Agent attention和Swiffn'
+arch: 'aformer3_swiglu_queue_new'
+desc: 'flickr30k，版本11:修改Swiffn，增加一个gate'
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
@@ -23,7 +23,7 @@ shuffle: True # 训练集是否打乱
 task_name: {'irtr': 1}
 get_recall_metric: True
 top_k: 64
-queue_size: 500
+queue_size: 1000
 distill: False
 momentum: 0.995
 alpha: 0.4

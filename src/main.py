@@ -92,14 +92,17 @@ def main(args, config):
         verbose=True,
         save_weights_only=False,
     )
-    early_stop_callback = pl.callbacks.EarlyStopping(
-        monitor='val/the_metric',
-        patience=3,
-        verbose=True,
-        mode='max'
-    )
+
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='step')
-    callbacks = [modelsummary_callback, checkpoint_callback, early_stop_callback, lr_callback]
+    callbacks = [modelsummary_callback, checkpoint_callback, lr_callback]
+
+    # early_stop_callback = pl.callbacks.EarlyStopping(
+    #     monitor='val/the_metric',
+    #     patience=3,
+    #     verbose=True,
+    #     mode='max'
+    # )
+    # callbacks = [modelsummary_callback, checkpoint_callback, early_stop_callback, lr_callback]
 
 
     trainer = pl.Trainer(
