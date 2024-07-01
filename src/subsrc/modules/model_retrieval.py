@@ -1160,7 +1160,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
             # 进行相似度得分的计算
             if '1k' in self.hparams.config['coco_scale']:
                 # 使用mscoco的1k测试集
-                results = defaultdict(list)
+                val_result = defaultdict(list)
                 for i in range(5):
                     assert len(vectors[-1]) % 5 == 0, "图片无法均匀切分"
                     # 创建映射，因为数据集实际情况不完全是1图片对应5文本
@@ -1180,14 +1180,14 @@ class RetrievalModuleWithQueue_1(BaseModule):
                     sub_vectors = sub_text_vectors + sub_image_vectors
 
                     score_val_i2t, score_val_t2i = evaluate.val_irtr_recall_sort(self, sub_vectors)
-                    val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i,
+                    sub_val_result = evaluate.calculate_score(score_val_i2t, score_val_t2i,
                                                           sub_index_mapper)
-                    for k, v in val_result.items():
-                        results[k].append(v)
-                for k, v in results.items():
-                    results[k] = np.mean(v)
+                    for k, v in sub_val_result.items():
+                        val_result[k].append(v)
+                for k, v in val_result.items():
+                    val_result[k] = np.mean(v)
                     self.logger.experiment.add_scalar(f"{phase}_{dataset}1k/{k}", np.mean(v), cur_step)
-                print(results)
+                print(val_result)
 
             if '5k' in self.hparams.config['coco_scale']:
                 # 使用mscoco的5k测试集

@@ -1,16 +1,16 @@
-# 常规设置
-datasets: ['flickr30k']
-data_root: "/home/tzj/datas/flickr30k_karpathy_prepared"
-output_dir: "../outputs_flickr30k"
-log_dir: "../logs_flickr30k"
+## 常规设置
+#datasets: ['flickr30k']
+#data_root: "/home/tzj/datas/flickr30k_karpathy_prepared"
+#output_dir: "../outputs_flickr30k"
+#log_dir: "../logs_flickr30k"
 
 # set pretrained as a file path or an url
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
 
-#datasets: ['coco']
-#data_root: "/root/autodl-tmp/datas/flickr30k_karpathy_prepared"
-#output_dir: "/root/autodl-tmp/outputs_flickr30k"
-#log_dir: "/root/tf-logs"
+datasets: ['flickr30k']
+data_root: "/root/autodl-tmp/datas/flickr30k_karpathy_prepared"
+output_dir: "/root/autodl-tmp/outputs_flickr30k"
+log_dir: "/root/tf-logs"
 test_checkpoints_dir: ""
 checkpoint: ''
 arch: 'aformer3_swiglu_queue_new'
@@ -52,8 +52,8 @@ warmup_steps: 0.15
 image_encoder_config:
   vit_name: 'ViT-B-16'
 #  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
-  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
-#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+#  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
   patch_size: 16 # 送入vit的图片块的像素
   # 预处理图片的模型（将图片处理为image_size * image_size）
@@ -65,17 +65,10 @@ image_encoder_config:
 
 # ----------------------  Text Setting  ----------------------
 text_encoder_config:
-#  tokenizer_name: 'deberta-v3-large-mnli'
-#  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-large-mnli-fever-anli-ling-wanli'
-#  tokenizer_name: 'electra-large'
-#  tokenizer: '/home/tzj/pretrained_models/en-electra-large-discriminator'
 
-#  tokenizer_name: 'xlm-roberta-large'
-#  tokenizer: '/home/tzj/pretrained_models/xlm-roberta-large'
-#  tokenizer: '/home/tzj/pretrained_models/en-deberta-v3-base-mnli-fever-anli'
   tokenizer_name: 'roberta-base'
-#  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
-  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
+#  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
 #  tokenizer_name: 'roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
 
