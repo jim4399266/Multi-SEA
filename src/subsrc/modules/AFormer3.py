@@ -601,8 +601,8 @@ class AFormerCrossGateFeedForward(nn.Module):
 
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.ffn_norm = RMSNorm(config.hidden_size)
-        self.swish = Swish(config.beta)
-        # self.swish = HSwish()
+        # self.swish = Swish(config.beta)
+        self.swish = HSwish()
 
     def forward(self, input_tensor):
         hidden_states1 = self.swish(self.dense1(input_tensor))

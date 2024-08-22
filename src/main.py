@@ -17,6 +17,12 @@ from subsrc.modules import build_model
 os.environ["NCCL_DEBUG"] = "INFO"
 torch.set_float32_matmul_precision('high')
 
+def rectify_config(loaded_config, config):
+    rectify_keys = ['data_root', 'output_dir', 'log_dir', 'accelerator', 'devices', 'coco_scale', 'image_encoder_config', 'text_encoder_config']
+    for key in rectify_keys:
+        loaded_config[key] = config[key]
+    return loaded_config
+
 def main(args, config):
     # 如果不用GPU，则num_gpus=0，防止下面除0，num_gpus置为1
     config['num_device'] = config['devices'] if isinstance(config['devices'], int) else len(config['devices'])
@@ -145,12 +151,13 @@ def main(args, config):
             print('---------------------------------------------')
             print(weight_paths)
             checkpoint = torch.load(str(ckpt), map_location='cpu')
-            checkpoint_config = checkpoint['hyper_parameters']['config']
-            checkpoint_config['coco_scale'] = config['coco_scale']
+            checkpoint_config = rectify_config(checkpoint['hyper_parameters']['config'], config)
+            # checkpoint_config = checkpoint['hyper_parameters']['config']
+            # checkpoint_config['coco_scale'] = config['coco_scale']
+            # checkpoint_config['checkpoint'] = str(ckpt)
             dm = build_datamodule(checkpoint_config)
             model = build_model(checkpoint_config)
             trainer.test(model, datamodule=dm, ckpt_path=str(ckpt))
-
     else:
         dm = build_datamodule(config)
         model = build_model(config)
@@ -173,9 +180,8 @@ def main(args, config):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco_baseline.yaml')
-    parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
-    # parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
+    # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
+    parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
     parser.add_argument('--devices', default='')
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--test_only', action='store_true')

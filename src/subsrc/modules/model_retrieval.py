@@ -1388,7 +1388,7 @@ class RetrievalModuleWithQueue_1(BaseModule):
     @classmethod
     def from_checkpoint(cls, config, strict=True):
         model = cls(config)
-        state_dict = model.get_state_dict(config['pretrained'])
+        state_dict = model.get_state_dict(config['checkpoint'])
         msg = model.load_state_dict(state_dict, strict=strict)
         print("missing keys:")
         print(msg.missing_keys)

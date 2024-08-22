@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="西北B区/287机-root@connect.westc.gpuhub.com:34210 pt2" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="tzjserver_tzj@192.168.3.4:13579 pt2" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="cad04_tzj@10.112.17.225:17877">
         <serverdata>
@@ -26,6 +26,13 @@
         </serverdata>
       </paths>
       <paths name="isi@49.232.216.2:8000">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ldx@10.112.83.133:17877 password">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />

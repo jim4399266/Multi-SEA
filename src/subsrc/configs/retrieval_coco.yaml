@@ -1,20 +1,21 @@
 # 常规设置
-#datasets: ['coco']
-#data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
-#output_dir: "../outputs"
-#log_dir: "../logs"
+datasets: ['coco']
+data_root: "/home/tzj/datas/mscoco/coco2014_karpathy_prepared"
+output_dir: "../outputs"
+log_dir: "../logs"
 
 # set pretrained as a file path or an url
 #pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
+#
+#datasets: ['coco']
+#data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
+#output_dir: "/root/autodl-tmp/outputs"
+#log_dir: "/root/tf-logs"
 
-datasets: ['coco']
-data_root: "/root/autodl-tmp/datas/coco2014_karpathy_prepared"
-output_dir: "/root/autodl-tmp/outputs"
-log_dir: "/root/tf-logs"
-
-test_checkpoints_dir: "/root/autodl-tmp/outputs/coco_aformer3_swiglu_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size1000_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_3"
-#checkpoint: '/home/tzj/codes/my_retrieval_model/outputs/coco_Aformer3_SwiGLU_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size1000_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_2/step18880-val_score450.4573.ckpt'
+#test_checkpoints_dir: "/root/autodl-tmp/outputs/coco_aformer3_swiglu_queue_new_Asize768_beta1.0_bs500_pbs20_queue_size1000_topk64_epoch200_lr1e-05_layer4_from_ViT-B-16_224_roberta-base/version_3"
+test_checkpoints_dir: "/home/tzj/codes/my_retrieval_model/checkpoint/mscoco"
 checkpoint: ''
+#checkpoint: ''
 arch: 'aformer3_swiglu_queue_new'
 desc: 'mscoco:版本11-3:修改Swiffn，增加一个cross gate'
 seed: 42
@@ -30,7 +31,7 @@ distill: False
 momentum: 0.995
 alpha: 0.4
 negative_all_rank: True
-coco_scale: ['1k'] #测试集使用1k，5k还是都用
+coco_scale: ['5k'] #测试集使用1k，5k还是都用
 
 # ----------------------  Lightning Trainer Setting  ------------------------------
 num_sanity_val_steps: 0 # 在开始前取 n 个val batches
@@ -54,8 +55,8 @@ warmup_steps: 0.15
 image_encoder_config:
   vit_name: 'ViT-B-16'
 #  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
-#  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
-  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
+#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
   image_size: 224 # 调整后的图片像素
   patch_size: 16 # 送入vit的图片块的像素
   # 预处理图片的模型（将图片处理为image_size * image_size）
@@ -69,8 +70,8 @@ image_encoder_config:
 text_encoder_config:
 
   tokenizer_name: 'roberta-base'
-  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
-#  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
+#  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
+  tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
 #  tokenizer_name: 'roberta-large'
 #  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
 
