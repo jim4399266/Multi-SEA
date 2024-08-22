@@ -1,26 +1,19 @@
-## 常规设置
+## General Setup
 datasets: ['flickr30k']
 data_root: "/home/tzj/datas/flickr30k_karpathy_prepared"
 output_dir: "../outputs_flickr30k"
 log_dir: "../logs_flickr30k"
 
-# set pretrained as a file path or an url
-#pretrained: '/home/tzj/pretrained_models/blip/model_base.pth'
-#
-#datasets: ['flickr30k']
-#data_root: "/root/autodl-tmp/datas/flickr30k_karpathy_prepared"
-#output_dir: "/root/autodl-tmp/outputs_flickr30k"
-#log_dir: "/root/tf-logs"
 
 test_checkpoints_dir: "/home/tzj/codes/my_retrieval_model/checkpoint/flickr30k"
 checkpoint: ''
 arch: 'aformer3_swiglu_queue_new'
-desc: 'flickr30k，版本11-3:修改Swiffn，增加一个cross gate'
+desc: ''
 seed: 42
 train_dataset_len: -1
 val_dataset_len: -1
 test_dataset_len: -1
-shuffle: True # 训练集是否打乱
+shuffle: True
 task_name: {'irtr': 1}
 get_recall_metric: True
 top_k: 64
@@ -29,13 +22,13 @@ distill: False
 momentum: 0.995
 alpha: 0.4
 negative_all_rank: True
-coco_scale: [''] #测试集使用1k，5k还是都用
+coco_scale: [''] # Use 1k, 5k, or both for the test set on MSCOCO
 
 # ----------------------  Lightning Trainer Setting  ------------------------------
-num_sanity_val_steps: 0 # 在开始前取 n 个val batches
-fast_dev_run: False # 快速检验，取 n 个train, val, test batches
-# val_check_interval: 1.0 # 验证间隔（浮点数为每X个epoch验证一次，整数为每X个step验证一次）
-check_val_every_n_epoch: 10 # 每几个epoch验证一次
+num_sanity_val_steps: 0
+fast_dev_run: False
+# val_check_interval: 1.0
+check_val_every_n_epoch: 10
 accelerator: 'gpu'
 devices: [0]
 batch_size: 500  # this is a desired batch size; pl trainer will accumulate gradients when per step batch is smaller.
@@ -52,14 +45,10 @@ warmup_steps: 0.15
 # ----------------------  Image Setting  ----------------------
 image_encoder_config:
   vit_name: 'ViT-B-16'
-#  vit: '/home/tzj/pretrained_models/vit-base-patch16-384'  # vit模型权重
-  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
-#  vit: '/root/autodl-tmp/pretrained_models/ViT/ViT-B-16.pt'  # vit模型权重
-  image_size: 224 # 调整后的图片像素
-  patch_size: 16 # 送入vit的图片块的像素
-  # 预处理图片的模型（将图片处理为image_size * image_size）
-#  train_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
-#  val_transform_keys: ['/home/tzj/pretrained_models/vit-base-patch16-384']
+  vit: '/home/tzj/pretrained_models/ViT/ViT-B-16.pt'
+  image_size: 224
+  patch_size: 16
+
   train_transform_keys: ["clip"]
   val_transform_keys: ["clip"]
 
@@ -68,24 +57,22 @@ image_encoder_config:
 text_encoder_config:
 
   tokenizer_name: 'roberta-base'
-#  tokenizer: '/root/autodl-tmp/pretrained_models/en-roberta-base'
   tokenizer: '/home/tzj/pretrained_models/en-roberta-base'
-#  tokenizer_name: 'roberta-large'
-#  tokenizer: '/home/tzj/pretrained_models/en-roberta-large'
+
 
   max_text_len: 40
   whole_word_masking: False # note that whole_word_masking does not work for RoBERTa
-  mlm_prob: 0.15 # mlm遮罩比例
+  mlm_prob: 0.15
 
 # ----------------------  Transformer Setting  ----------------------
 aformer_config_path: 'subsrc/configs/aformer_config.json'
-num_top_layer: 4  # 融合模块的层数
+num_top_layer: 4  # A-Former layers
 hidden_size: 768
 attention_groups: False
 beta: 1.0
-num_heads: 12 # 注意力的head数量
-## mlp_ratio = 1 # 中间层的维度：hidden_size * mlp_ratio
-mlp_ratio: 4 # 中间层的维度：hidden_size * mlp_ratio
+num_heads: 12
+
+mlp_ratio: 4 # dim of middle layer ：hidden_size * mlp_ratio
 drop_rate: 0.1 # dropout
 
 # ----------------------  Optimizer Setting  ----------------------
@@ -97,9 +84,7 @@ optimizer:
   eps: 1e-8
   betas: (0.9, 0.98)
   weight_decay: 0.05
-#  decay_power: 1
-#  max_epoch: 6,
-#  max_steps: -1,
+
   lr_mult_head: 5 # multiply lr for downstream heads
   lr_mult_cross_modal: 5  # multiply lr for the cross-modal module
 

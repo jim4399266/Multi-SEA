@@ -27,21 +27,21 @@ class Flickr30KRecallDataset(Flickr30KBaseDataset):
         print(f'Flickr30kKarpathyRecallDataset {split} len : {len(self)}')
 
     def get_text(self, image_index):
-        # 测试时，返回一张图片对应的一组文本
+
         texts = self.all_texts[image_index]
         encodings = self.tokenizer(
-            texts,  # 这里是一个列表，包含每张图片对应的一组文本
+            texts,
             padding='max_length',
             max_length=self.max_text_len,
             truncation=True,
-            return_special_tokens_mask=True,  # 遮住特殊token的mask
+            return_special_tokens_mask=True,
             return_tensors='pt'
         )
-        # 注意区分key中的text和cap，在collate会有不同处理
+
         return {
-            'text': None,  # 正例的原文
-            'text_encodings': encodings,  # 所有文本的encoding
-            'text_index': None,  # 正例的下标
-            'text_list': texts,  # 图片对应的文本列表
+            'text': None,
+            'text_encodings': encodings,
+            'text_index': None,
+            'text_list': texts,
             'text_list_index': [image_index] * len(texts)
         }

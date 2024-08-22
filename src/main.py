@@ -24,7 +24,6 @@ def rectify_config(loaded_config, config):
     return loaded_config
 
 def main(args, config):
-    # 如果不用GPU，则num_gpus=0，防止下面除0，num_gpus置为1
     config['num_device'] = config['devices'] if isinstance(config['devices'], int) else len(config['devices'])
     config['dist'] = True if config['num_device'] > 1 else False
     strategy = 'ddp_find_unused_parameters_true' if config['num_device'] > 1 else 'auto'
@@ -39,7 +38,6 @@ def main(args, config):
         'dataset': '-'.join((config['datasets'])),
         'arch': config['arch'],
         'Asize': config['hidden_size'],
-        # 'heads': config['num_heads'],
         'beta': config['beta'],
         'bs': config["batch_size"],
         'pbs': config["per_gpu_batch_size"],
@@ -58,20 +56,6 @@ def main(args, config):
 
     if config['attention_groups']:
         prefix_dict.update({'arch': f'{config["arch"]}_GQA_{config["attention_groups"]}'})
-    # if config['pretrained'] == "":
-    #     prefix_dict.update(
-    #         {'from_': f'{config["image_encoder_config"]["vit_name"]}_'
-    #                   f'{config["image_encoder_config"]["image_size"]}_'
-    #                   f'{config["text_encoder_config"]["tokenizer_name"]}'}
-    #     )
-    #     log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch') else f'{v}'
-    #                          for k, v in prefix_dict.items()])
-    # else:
-    #     prefix_dict.update(
-    #         {'from_': f'{config["pretrained"].split("/")[-1].split(".")[0]}'}
-    #     )
-    #     log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch') else f'{v}'
-    #                          for k, v in prefix_dict.items()])
     log_name = '_'.join([f'{k}{v}' if (k != 'task' and k != 'arch' and k != 'dataset') else f'{v}'
                          for k, v in prefix_dict.items()])
 
@@ -83,7 +67,6 @@ def main(args, config):
     logger = pl.loggers.TensorBoardLogger(
         save_dir=log_dir,
         name=log_name,
-        # default_hp_metric=False,    # 禁用 PyTorch Lightning 默认的 hparams 评估指标, 启用 TensorboardX
     )
     print('-------------\n',log_name, '\n----------------------')
     modelsummary_callback = pl.callbacks.ModelSummary(max_depth=1)
@@ -102,43 +85,27 @@ def main(args, config):
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='step')
     callbacks = [modelsummary_callback, checkpoint_callback, lr_callback]
 
-    # early_stop_callback = pl.callbacks.EarlyStopping(
-    #     monitor='val/the_metric',
-    #     patience=3,
-    #     verbose=True,
-    #     mode='max'
-    # )
-    # callbacks = [modelsummary_callback, checkpoint_callback, early_stop_callback, lr_callback]
-
 
     trainer = pl.Trainer(
         # resume_from_checkpoint=config['load_path'],
         logger=logger,
         log_every_n_steps=50,
         precision=config['precision'],
-        # amp_backend='apex' if config['apex'] else "native",
-        # amp_level=config['amp_level'] if config['apex'] else None,
 
         accelerator=config['accelerator'],
         devices=config['devices'],
-        # gpus=config['gpus'],
+
         strategy=strategy,
-        # strategy='ddp_find_unused_parameters_true',
         use_distributed_sampler=False,
-        # enable_model_summary=True,
-        # benchmark=True,
+
         max_epochs=config['max_epoch'],
         callbacks=callbacks,
-        # gradient_clip_val=None if config['manual_optimization'] else config['max_grad_norm'],
-        # accumulate_grad_batches=None if config['manual_optimization'] else grad_steps,
+
         gradient_clip_val=config['max_grad_norm'],
         accumulate_grad_batches=grad_steps,
 
         fast_dev_run=config.get('fast_dev_run', False),
-        # limit_train_batches=config.get(config['limit_train_batches'], None),
-        # limit_val_batches=config.get(config['limit_val_batches'], None),
-        # limit_test_batches=config.get(config['limit_test_batches'], None),
-        # limit_predict_batches=config.get(config['limit_predict_batches'], None),
+
         num_sanity_val_steps=config['num_sanity_val_steps'],
         val_check_interval=config.get('val_check_interval', None),
         check_val_every_n_epoch=config.get('check_val_every_n_epoch', None),
@@ -152,9 +119,7 @@ def main(args, config):
             print(weight_paths)
             checkpoint = torch.load(str(ckpt), map_location='cpu')
             checkpoint_config = rectify_config(checkpoint['hyper_parameters']['config'], config)
-            # checkpoint_config = checkpoint['hyper_parameters']['config']
-            # checkpoint_config['coco_scale'] = config['coco_scale']
-            # checkpoint_config['checkpoint'] = str(ckpt)
+
             dm = build_datamodule(checkpoint_config)
             model = build_model(checkpoint_config)
             trainer.test(model, datamodule=dm, ckpt_path=str(ckpt))
@@ -169,10 +134,7 @@ def main(args, config):
             else:
                 trainer.fit(model, datamodule=dm)
             weight_paths = list(trainer.checkpoint_callback.best_k_models.keys())
-            # weight_paths = list(Path(checkpoint_callback.dirpath).rglob('*.[pc][tk][hp]*'))
-            # weight_paths = list(Path('/home/tzj/codes/my_clip/outputs/'
-            #                          'irtr_bs200_pbs50_epoch6_lr1e-05_is224_from_model_base/version_19/').rglob(
-            #     '*.[pc][tk][hp]*'))
+
             print(weight_paths)
             for ckpt in weight_paths:
                 trainer.test(model, datamodule=dm, ckpt_path=str(ckpt))
@@ -180,8 +142,8 @@ def main(args, config):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
-    parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
+    # parser.add_argument('--config', default='./subsrc/configs/retrieval_flickr30k.yaml')
+    parser.add_argument('--config', default='./subsrc/configs/retrieval_coco.yaml')
     parser.add_argument('--devices', default='')
     parser.add_argument('--evaluate', action='store_true')
     parser.add_argument('--test_only', action='store_true')
@@ -191,16 +153,16 @@ if __name__ == '__main__':
 
     if args.devices != '':
         config['devices'] = eval(args.devices)
-    if args.debug:
-        config['train_dataset_len'] = int(5 * config['per_gpu_batch_size'])
-        # config['val_dataset_len'] = int(10 * config['per_gpu_batch_size'])
-        config['test_dataset_len'] = int(10 * config['per_gpu_batch_size'])
-        config['batch_size'] = config['per_gpu_batch_size']
-        config['check_val_every_n_epoch'] = 1
-        config['fast_dev_run'] = 5
-        config['shuffle'] = False
-        config['num_workers'] = 0
-        # config['max_epoch'] = 3
-        config['debug'] = True
+    # if args.debug:
+    #     config['train_dataset_len'] = int(5 * config['per_gpu_batch_size'])
+    #     # config['val_dataset_len'] = int(10 * config['per_gpu_batch_size'])
+    #     config['test_dataset_len'] = int(10 * config['per_gpu_batch_size'])
+    #     config['batch_size'] = config['per_gpu_batch_size']
+    #     config['check_val_every_n_epoch'] = 1
+    #     config['fast_dev_run'] = 5
+    #     config['shuffle'] = False
+    #     config['num_workers'] = 0
+    #     # config['max_epoch'] = 3
+    #     config['debug'] = True
     config['optimizer']['betas'] = eval(config['optimizer']['betas'])
     main(args, config)

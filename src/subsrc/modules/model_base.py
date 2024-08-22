@@ -1,6 +1,4 @@
-'''
-BaseModel: 提供模型需要的一些基础方法
-'''
+
 import torch
 import pytorch_lightning as pl
 import os
@@ -120,13 +118,12 @@ class BaseModule(pl.LightningModule):
         self.ptr_queue[0] = ptr
 
     def cal_steps(self):
-        # 计算 max_steps 和 warmup_steps
         if self.trainer.max_steps == None or self.trainer.max_epochs != None:
             max_steps = (len(self.trainer.datamodule.train_dataloader()) * self.trainer.max_epochs
                          // self.hparams.config['gradient_accumulation_steps'])
         else:
             max_steps = self.trainer.max_steps
-        # 当 warmup_steps=-1 时不启用warm up
+
         warmup_steps = max(0, self.hparams.config['warmup_steps'])
         if isinstance(warmup_steps, float):
             warmup_steps = int(warmup_steps * max_steps)
@@ -134,7 +131,6 @@ class BaseModule(pl.LightningModule):
         return max_steps, warmup_steps
 
     def get_scheduler(self, optimizer, warmup_steps, max_steps):
-        # 设置scheduler
         if self.hparams.config['scheduler'] == 'linear':
             scheduler = get_linear_schedule_with_warmup(
                 optimizer, num_warmup_steps=warmup_steps, num_training_steps=max_steps,
@@ -157,7 +153,6 @@ class BaseModule(pl.LightningModule):
         return sched
 
     def set_metrics(self):
-        # 区分训练集和验证集的指标
         for split in ['train', 'val', 'test']:
             for k, v in self.hparams.config['task_name'].items():
                 if v < 1:

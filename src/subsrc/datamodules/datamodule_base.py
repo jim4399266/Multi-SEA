@@ -11,12 +11,9 @@ from transformers import (
 )
 from typing import Union, Optional, List, Dict
 
-#
-# import sys
-# sys.path.append('..')
-# from transforms import keys_to_transforms
+
 def get_pretrained_tokenizer(from_pretrained):
-    # 获取分词器，考虑分布式情况
+
     if torch.distributed.is_initialized():
         if torch.distributed.get_rank() == 0:
             return AutoTokenizer.from_pretrained(
@@ -26,10 +23,7 @@ def get_pretrained_tokenizer(from_pretrained):
         torch.distributed.barrier()
     else:
         return AutoTokenizer.from_pretrained(from_pretrained)
-        # return AutoTokenizer.from_pretrained(
-        #     from_pretrained,
-        #     do_lower_case='uncased' in from_pretrained,
-        #     use_fast=False)
+
 
 class BaseDataModule(LightningDataModule):
     def __init__(self, config):
@@ -49,7 +43,7 @@ class BaseDataModule(LightningDataModule):
         self.val_dataset_len = config['val_dataset_len']
         self.test_dataset_len = config['test_dataset_len']
 
-        # 图片转换器，用于在dataset中将原始图片转换到到image_size大小
+        # image resize
         self.train_transform_keys = (
             ['default_train']
             if len(config['image_encoder_config']['train_transform_keys']) == 0
@@ -61,18 +55,10 @@ class BaseDataModule(LightningDataModule):
             else config['image_encoder_config']['val_transform_keys']
         )
 
-        # 加载分词器
+        # load tokenizer
         self.tokenizer = get_pretrained_tokenizer(config['text_encoder_config']['tokenizer'])
         self.vocab_size = self.tokenizer.vocab_size
-        # # Dataloader 中的数据整理方式
-        # collator = (
-        #     DataCollatorForWholeWordMask
-        #     if config['whole_word_masking']
-        #     else DataCollatorForLanguageModeling
-        # )
-        # self.mlm_collator = collator(
-        #     tokenizer=self.tokenizer, mlm=True, mlm_probability=config['mlm_prob']
-        # )
+
         self.setup_flag = False
 
     @property
@@ -129,7 +115,7 @@ class BaseDataModule(LightningDataModule):
             if stage == 'fit':
                 self.set_train_dataset()
                 self.set_val_dataset()
-                # 设置采样器
+
                 if self.dist:
                     self.train_sampler = DistributedSampler(self.train_dataset, shuffle=True)
                 else:
@@ -141,7 +127,8 @@ class BaseDataModule(LightningDataModule):
             else:
                 self.set_test_dataset()
                 self.test_sampler = None
-        # self.setup_flag = True
+
+
     def train_dataloader(self) -> Union[DataLoader, List[DataLoader], Dict[str, DataLoader]]:
         loader = DataLoader(
             self.train_dataset,
