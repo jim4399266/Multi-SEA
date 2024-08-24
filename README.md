@@ -65,3 +65,40 @@ python main.py --config=./subsrc/configs/retrieval_coco.yaml   --devices=[0]
 ```
 
 ## Testing
+### On Flickr30K
+We should find the config file in <ins>src/subsrc/configs/retrieval_flickr30k.yaml
+
+then replace the following file path: 
+* data_root : the directory of your dataset
+* test_checkpoints_dir : the directory of checkpoint
+* vit :  the directory of image backbone
+* tokenizer : the directory of text backbone
+
+finally run the script in /src :
+```
+python main.py --config=./subsrc/configs/retrieval_flickr30k.yaml   --devices=[0] --test_only
+```
+
+### On MSCOCO
+We should find the config file in <ins>src/subsrc/configs/retrieval_coco.yaml
+
+then replace the following file path: 
+* data_root : the directory of your dataset
+* test_checkpoints_dir : the directory of checkpoint
+* vit :  the directory of image backbone
+* tokenizer : the directory of text backbone
+
+finally run the script in /src :
+```
+python main.py --config=./subsrc/configs/retrieval_coco.yaml   --devices=[0] --test_only
+```
+
+## Citation
+If you use our work, please cite:
+```
+
+```
+## Acknowledgement
+
+The implementation of Mulit-SEA relies on resources from [Bert(pytorch)](https://github.com/codertimo/BERT-pytorch), [CLIP](https://github.com/openai/CLIP), [llama](https://github.com/meta-llama/llama), and [Pytorch Lightning](https://github.com/Lightning-AI/pytorch-lightning) . We thank the original authors for their open-sourcing.
+
