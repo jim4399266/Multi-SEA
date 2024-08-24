@@ -24,5 +24,44 @@ We provide the tensorboard logs and checkpoints fine-tuned on Flickr30k and MSCO
 
 
 ## Requirements
+* Python version >= 3.9.0
+
+* [PyTorch](https://pytorch.org/) version >= 2.0.0
+
+* Install other libraries via
+```
+pip install -r requirements.txt
+```
+
+## Datasets
+We follow [ViLT](https://github.com/dandelin/ViLT) and use `pyarrow` to serialize the datasets. See [this link](https://github.com/dandelin/ViLT/blob/master/DATA.md) for details.
 
 
+## Training
+### On Flickr30K
+We should find the config file in <ins>src/subsrc/configs/retrieval_flickr30k.yaml
+
+then replace the following file path: 
+* data_root : the directory of your dataset
+* vit :  the directory of image backbone
+* tokenizer : the directory of text backbone
+
+finally run the script in /src :
+```
+python main.py --config=./subsrc/configs/retrieval_flickr30k.yaml   --devices=[0] 
+```
+
+### On MSCOCO
+We should find the config file in <ins>src/subsrc/configs/retrieval_coco.yaml
+
+then replace the following file path: 
+* data_root : the directory of your dataset
+* vit :  the directory of image backbone
+* tokenizer : the directory of text backbone
+
+finally run the script in /src :
+```
+python main.py --config=./subsrc/configs/retrieval_coco.yaml   --devices=[0] 
+```
+
+## Testing
