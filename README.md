@@ -14,13 +14,13 @@ We employ the Roberta-base model and Vit-B/16 model as the backbones to prelimin
 
 | Visual Backbone | Text Backbone |
 |------------------------|------------------------|
-| [vit-b-16](https://openaipublic.azureedge.net/clip/models/5806e77cd80f8b59890b7e101eabd078d9fb84e6937f9e85e4ecb61988df416f/ViT-B-16.pt) | [Roberta-base](https://drive.google.com/file/d/1ddE0BSYxvdQLAH0t6fTk5UCV1a9B6q7x/view?usp=drive_link) | 
+| [vit-b-16](https://openaipublic.azureedge.net/clip/models/5806e77cd80f8b59890b7e101eabd078d9fb84e6937f9e85e4ecb61988df416f/ViT-B-16.pt) | [Roberta-base](https://drive.google.com/file/d/1ddE0BSYxvdQLAH0t6fTk5UCV1a9B6q7x/view?usp=sharing) | 
 
 ## Multi-SEA checkpoints
 We provide the tensorboard logs and checkpoints fine-tuned on Flickr30k and MSCOCO. The checkpoints  contain weights, configs, optimizers, and other training information saved by Pytorch Lightning.
 | Checkpoint on Flickr30k | Checkpoint on MSCOCO |
 |------------------------|------------------------|
-| [Multi-SEA_flickr30k](https://openaipublic.azureedge.net/clip/models/5806e77cd80f8b59890b7e101eabd078d9fb84e6937f9e85e4ecb61988df416f/ViT-B-16.pt) | [Multi-SEA_mscoco](https://drive.google.com/file/d/1ddE0BSYxvdQLAH0t6fTk5UCV1a9B6q7x/view?usp=drive_link) | 
+| [Multi-SEA_flickr30k]() | [Multi-SEA_mscoco](https://drive.google.com/file/d/1lBSAJH477P9aOFkfZG6Lyw8DIc02f1tw/view?usp=sharing) | 
 
 
 ## Requirements
