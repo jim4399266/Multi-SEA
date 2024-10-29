@@ -20,7 +20,7 @@ We employ the Roberta-base model and Vit-B/16 model as the backbones to prelimin
 We provide the tensorboard logs and checkpoints fine-tuned on Flickr30k and MSCOCO. The checkpoints  contain weights, configs, optimizers, and other training information saved by Pytorch Lightning.
 | Checkpoint on Flickr30k | Checkpoint on MSCOCO |
 |------------------------|------------------------|
-| [Multi-SEA_flickr30k](https://drive.google.com/file/d/1nMP_m0aCjLy3qsv_EHXrRG3djy58vFWQ/view?usp=sharing) | [Multi-SEA_mscoco](https://drive.google.com/file/d/1lBSAJH477P9aOFkfZG6Lyw8DIc02f1tw/view?usp=sharing) | 
+| [Multi-SEA_flickr30k](https://drive.google.com/file/d/1rkh7GWXarUBQsK9JocTK9RUCnEMJP1HQ/view?usp=sharing) | [Multi-SEA_mscoco](https://drive.google.com/file/d/1lBSAJH477P9aOFkfZG6Lyw8DIc02f1tw/view?usp=sharing) | 
 
 
 ## Requirements
