@@ -1,4 +1,5 @@
 # Multi-SEA: Multi-stage Semantic Enhancement and Aggregation for Image-Text Retrieval
+The paper was accepted on 24 March 2025 and available online 14 April 2025. Information Processing and Management 62 (2025) 104165. [https://doi.org/10.1016/j.ipm.2025.104165](https://doi.org/10.1016/j.ipm.2025.104165)
 
 ## Introduction
 We propose a Multi-stage Semantic Enhancement and Aggregation framework (**Multi-SEA**) with novel networks and training schemes. Multi-SEA first designs a fusion module with agent attention and gating mechanism. It enhances uni-modal information and aggregates fine-grained cross-modal information by involving different stages. Multi-SEA then introduces a three-stage scheme to integrate the two structures mentioned above together. 
@@ -96,7 +97,18 @@ python main.py --config=./subsrc/configs/retrieval_coco.yaml   --devices=[0] --t
 ## Citation
 If you use our work, please cite:
 ```
-
+@article{TIAN2025104165,
+title = {Multi-SEA: Multi-stage Semantic Enhancement and Aggregation for image–text retrieval},
+journal = {Information Processing & Management},
+volume = {62},
+number = {5},
+pages = {104165},
+year = {2025},
+issn = {0306-4573},
+doi = {https://doi.org/10.1016/j.ipm.2025.104165},
+url = {https://www.sciencedirect.com/science/article/pii/S0306457325001062},
+author = {Zijing Tian and Zhonghong Ou and Yifan Zhu and Shuai Lyu and Hanyu Zhang and Jinghua Xiao and Meina Song}
+}
 ```
 ## Acknowledgement
 
