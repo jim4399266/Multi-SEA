@@ -97,17 +97,18 @@ python main.py --config=./subsrc/configs/retrieval_coco.yaml   --devices=[0] --t
 ## Citation
 If you use our work, please cite:
 ```
-@article{TIAN2025104165,
-title = {Multi-SEA: Multi-stage Semantic Enhancement and Aggregation for image–text retrieval},
-journal = {Information Processing & Management},
-volume = {62},
-number = {5},
-pages = {104165},
-year = {2025},
-issn = {0306-4573},
-doi = {https://doi.org/10.1016/j.ipm.2025.104165},
-url = {https://www.sciencedirect.com/science/article/pii/S0306457325001062},
-author = {Zijing Tian and Zhonghong Ou and Yifan Zhu and Shuai Lyu and Hanyu Zhang and Jinghua Xiao and Meina Song}
+@article{tian2025multi,
+  title={Multi-SEA: Multi-stage Semantic Enhancement and Aggregation for image--text retrieval},
+  author={Tian, Zijing and Ou, Zhonghong and Zhu, Yifan and Lyu, Shuai and Zhang, Hanyu and Xiao, Jinghua and Song, Meina},
+  journal={Information Processing \& Management},
+  volume={62},
+  number={5},
+  pages={104165},
+  year={2025},
+  issn = {0306-4573},
+  doi = {https://doi.org/10.1016/j.ipm.2025.104165},
+  url = {https://www.sciencedirect.com/science/article/pii/S0306457325001062},
+  publisher={Elsevier}
 }
 ```
 ## Acknowledgement
